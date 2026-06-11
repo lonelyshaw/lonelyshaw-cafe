@@ -1,53 +1,249 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>lonelyshaw café — личный digital diary</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
-  <style>
-    :root{--bg:#f8eee7;--paper:#fff8ef;--ink:#2f2425;--muted:#856d72;--rose:#eeb6ca;--pink:#ffdce7;--lilac:#d8c6ff;--violet:#8c72ca;--sage:#a8b996;--coffee:#714b38;--gold:#ffe18e;--blue:#bfe4ff;--glass:rgba(255,248,239,.62);--glass2:rgba(255,255,255,.26);--line:rgba(90,55,65,.15);--shadow:0 28px 90px rgba(79,45,60,.22);--soft:0 16px 50px rgba(79,45,60,.13);--sans:"Manrope",system-ui,sans-serif;--serif:"Playfair Display",Georgia,serif;--fancy:"Cormorant Garamond",Georgia,serif;--pixel:"Press Start 2P",monospace}
-    body.night{--bg:#120f1d;--paper:#1d172b;--ink:#fff3ec;--muted:#d9bfca;--rose:#e2a5c8;--pink:#633a62;--lilac:#bda7ff;--violet:#c7b2ff;--sage:#b9caa8;--coffee:#e1b68f;--gold:#ffe28e;--blue:#a7d9ff;--glass:rgba(28,22,42,.62);--glass2:rgba(255,255,255,.12);--line:rgba(255,255,255,.15);--shadow:0 30px 110px rgba(0,0,0,.55);--soft:0 18px 60px rgba(0,0,0,.32)}
-    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);font-family:var(--sans);overflow-x:hidden;background:radial-gradient(circle at 10% 3%,rgba(255,220,231,.95),transparent 26%),radial-gradient(circle at 78% 2%,rgba(216,198,255,.75),transparent 32%),radial-gradient(circle at 50% 70%,rgba(191,228,255,.35),transparent 34%),linear-gradient(135deg,var(--bg),#f3e2d6);transition:.6s}body.night{background:radial-gradient(circle at 8% 2%,rgba(112,60,117,.58),transparent 30%),radial-gradient(circle at 82% 5%,rgba(54,52,112,.62),transparent 34%),radial-gradient(circle at 50% 80%,rgba(41,84,95,.28),transparent 36%),linear-gradient(135deg,#120f1d,#251733 55%,#15101e)}
-    body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:100;opacity:.13;mix-blend-mode:soft-light;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.75'/%3E%3C/svg%3E")}
-    .rain,.stars{position:fixed;inset:0;pointer-events:none;opacity:0;z-index:3;transition:.8s;overflow:hidden}body.night .rain,body.night .stars{opacity:1}.rain i{position:absolute;top:-20vh;width:1px;height:88px;background:linear-gradient(transparent,rgba(220,223,255,.55));animation:rain 1.25s linear infinite}@keyframes rain{to{transform:translate3d(-35px,125vh,0)}}.stars i{position:absolute;width:3px;height:3px;border-radius:50%;background:#fff0aa;box-shadow:0 0 18px #fff0aa;animation:star 8s linear infinite}@keyframes star{0%{opacity:0;transform:translate3d(0,-10vh,0)}14%{opacity:1}100%{opacity:0;transform:translate3d(-30vw,112vh,0)}}
-    .wrap{width:min(1250px,calc(100% - 34px));margin:auto;position:relative;z-index:10}.nav{position:fixed;left:50%;top:16px;transform:translateX(-50%);width:min(1160px,calc(100% - 24px));z-index:80;display:flex;gap:12px;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:999px;background:var(--glass);border:1px solid var(--line);backdrop-filter:blur(24px) saturate(1.3);box-shadow:var(--soft)}.logo{font-family:var(--serif);font-size:22px;font-weight:800;letter-spacing:-.05em;white-space:nowrap}.menu{display:flex;gap:4px;overflow:auto;scrollbar-width:none}.menu::-webkit-scrollbar{display:none}.menu a{color:var(--ink);text-decoration:none;font-size:11px;text-transform:uppercase;font-weight:900;letter-spacing:.05em;padding:10px 12px;border-radius:999px;opacity:.78}.menu a:hover{background:var(--glass2);opacity:1}.mode{border:0;border-radius:999px;background:linear-gradient(135deg,var(--pink),var(--lilac));color:var(--ink);padding:11px 15px;cursor:pointer;font-weight:900;box-shadow:0 0 36px rgba(255,225,142,.32)}
-    .hero{min-height:100vh;padding:88px 0 34px;display:grid;align-items:center}.hero-world{position:relative;min-height:calc(100vh - 122px);overflow:hidden;border-radius:48px;border:1px solid rgba(255,255,255,.25);box-shadow:var(--shadow);background:linear-gradient(100deg,rgba(30,16,27,.82),rgba(30,16,27,.25),rgba(30,16,27,.7)),url("https://source.unsplash.com/2400x1600/?rainy-bedroom,laptop,fairy-lights") center/cover;isolation:isolate}body:not(.night) .hero-world{background:linear-gradient(100deg,rgba(72,39,45,.62),rgba(255,235,219,.12),rgba(72,39,45,.55)),url("https://source.unsplash.com/2400x1600/?girl-bedroom,pinterest,fairy-lights") center/cover}.hero-world:after{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(circle at 70% 16%,rgba(255,225,142,.28),transparent 24%),radial-gradient(circle at 35% 82%,rgba(216,198,255,.35),transparent 28%)}
-    .garland{position:absolute;top:24px;left:28px;right:28px;z-index:4;display:flex;justify-content:space-between}.garland span{width:13px;height:13px;border-radius:50%;background:var(--gold);box-shadow:0 0 28px var(--gold);animation:twinkle 1.4s infinite alternate}.garland span:nth-child(2n){background:#ffd3e5;animation-delay:.35s}.garland span:nth-child(3n){background:#c9b8ff;animation-delay:.8s}@keyframes twinkle{from{opacity:.28;transform:translateY(0) scale(.75)}to{opacity:1;transform:translateY(8px) scale(1.2)}}
-    .hero-copy{position:absolute;left:clamp(22px,5vw,74px);bottom:clamp(28px,6vw,78px);width:min(670px,calc(100% - 44px));z-index:8;color:#fff8ef}.eyebrow{display:inline-flex;padding:9px 12px;border-radius:999px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(16px);font-size:11px;text-transform:uppercase;font-weight:900;letter-spacing:.14em;margin-bottom:18px}h1{font-family:var(--serif);font-size:clamp(58px,9vw,138px);line-height:.77;letter-spacing:-.08em;margin:0 0 18px;text-shadow:0 18px 60px rgba(0,0,0,.35)}.lead{font-family:var(--fancy);font-size:clamp(25px,3.2vw,44px);line-height:1.03;margin:0 0 18px;color:#fff1dd}.desc{font-size:15px;line-height:1.75;color:rgba(255,248,239,.88);max-width:590px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:25px}.btn{border:0;border-radius:999px;padding:14px 20px;cursor:pointer;font-weight:900;font-family:var(--sans);text-decoration:none;display:inline-flex;align-items:center;gap:8px;justify-content:center;transition:.25s}.btn:hover{transform:translateY(-4px)}.primary{background:var(--gold);color:#35251b;box-shadow:0 0 42px rgba(255,225,142,.42)}.ghost{background:rgba(255,255,255,.14);color:white;border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(14px)}
-    .sticker{position:absolute;z-index:9;filter:drop-shadow(0 12px 18px rgba(0,0,0,.22));user-select:none;animation:float 4s ease-in-out infinite alternate}@keyframes float{to{transform:translateY(-12px) rotate(4deg)}}.s1{right:34%;top:18%;font-size:42px}.s2{right:9%;top:12%;font-size:36px;animation-delay:.7s}.s3{right:23%;bottom:12%;font-size:48px;animation-delay:1.1s}.s4{left:43%;bottom:24%;font-size:34px;animation-delay:.4s}
-    .polaroid{position:absolute;z-index:7;background:#fffaf3;padding:10px 10px 42px;border-radius:7px;box-shadow:0 24px 70px rgba(0,0,0,.32);transform:rotate(var(--r));border:1px solid rgba(0,0,0,.06);transition:.4s}body.night .polaroid{background:#fff8ed;color:#302020}.polaroid:hover{transform:rotate(var(--r)) translateY(-10px) scale(1.03)}.polaroid img{width:100%;height:100%;object-fit:cover;display:block;border-radius:4px}.polaroid b{position:absolute;left:14px;bottom:13px;font-family:var(--fancy);font-size:22px}.po1{--r:7deg;width:240px;height:310px;right:8%;top:22%}.po2{--r:-8deg;width:210px;height:270px;right:28%;top:13%}.po3{--r:4deg;width:260px;height:230px;right:15%;bottom:15%}.po4{--r:-5deg;width:190px;height:240px;right:3%;bottom:32%}
-    .home-widget{position:absolute;z-index:10;right:34%;bottom:8%;width:320px;padding:17px;border-radius:28px;background:rgba(255,248,239,.65);color:#2f2425;backdrop-filter:blur(22px);box-shadow:var(--soft);border:1px solid rgba(255,255,255,.35)}.home-widget h3{font-family:var(--serif);margin:0 0 8px;font-size:28px;letter-spacing:-.04em}.mini-track{font-size:13px;line-height:1.5;margin:0 0 12px;color:#6b5359}.mini-controls{display:flex;gap:8px;align-items:center}.mini-controls button{border:0;border-radius:50%;width:38px;height:38px;background:#2f2425;color:white;cursor:pointer}.mini-bar{height:9px;flex:1;background:rgba(47,36,37,.12);border-radius:999px;overflow:hidden}.mini-fill{height:100%;width:36%;border-radius:999px;background:linear-gradient(90deg,var(--rose),var(--gold),var(--lilac));animation:pulsebar 3s infinite alternate}@keyframes pulsebar{to{width:82%}}
-    .thought{position:absolute;z-index:10;right:42%;top:49%;width:260px;padding:17px;border-radius:24px;background:rgba(255,255,255,.16);color:#fffaf2;backdrop-filter:blur(18px);border:1px solid rgba(255,255,255,.23);box-shadow:var(--soft);transform:rotate(-3deg)}.thought small{font-family:var(--pixel);font-size:8px;color:#ffe9a8}.thought p{font-family:var(--fancy);font-size:23px;line-height:1.05;margin:10px 0 0}
-    section{padding:60px 0}.section-head{display:grid;grid-template-columns:.8fr .65fr;gap:32px;align-items:end;margin-bottom:28px}h2{font-family:var(--serif);font-size:clamp(42px,6vw,88px);line-height:.84;letter-spacing:-.075em;margin:0}.note{color:var(--muted);line-height:1.75;margin:0}.mosaic{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-rows:88px;gap:16px}.tile{position:relative;overflow:hidden;border-radius:32px;box-shadow:var(--soft);border:1px solid rgba(255,255,255,.22);background:var(--glass);backdrop-filter:blur(16px);transition:.35s}.tile:hover{transform:translateY(-7px) rotate(.4deg);box-shadow:var(--shadow)}.tile img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(.98)} .tile img[src*="static.wikia"]{object-fit:contain;background:linear-gradient(135deg,rgba(255,220,231,.9),rgba(216,198,255,.72));padding:18px}.tile:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(18,11,18,.66),transparent 62%)}.tile .txt{position:absolute;left:18px;right:18px;bottom:16px;z-index:2;color:#fff8ef}.tile h3{font-family:var(--serif);font-size:30px;letter-spacing:-.05em;margin:0 0 4px}.tile p{margin:0;font-size:13px;line-height:1.45;color:rgba(255,248,239,.88)}.big{grid-column:span 6;grid-row:span 5}.wide{grid-column:span 6;grid-row:span 3}.tall{grid-column:span 3;grid-row:span 5}.small{grid-column:span 3;grid-row:span 3}.mega{grid-column:span 8;grid-row:span 6}.diary-card{padding:24px;border-radius:32px;background:var(--glass);border:1px solid var(--line);box-shadow:var(--soft);backdrop-filter:blur(18px);display:flex;flex-direction:column;justify-content:space-between}.diary-card:after{display:none}.diary-card h3{font-family:var(--serif);font-size:34px;margin:0 0 10px;line-height:.9;letter-spacing:-.05em}.diary-card p{color:var(--muted);line-height:1.65}.pixel{font-family:var(--pixel);font-size:10px;color:var(--violet);line-height:1.8}.pins{columns:4 245px;column-gap:16px}.pin{break-inside:avoid;margin:0 0 16px;overflow:hidden;border-radius:30px;background:var(--glass);border:1px solid var(--line);box-shadow:var(--soft);backdrop-filter:blur(16px);transition:.35s}.pin:hover{transform:translateY(-7px) rotate(.5deg);box-shadow:var(--shadow)}.pin img{width:100%;display:block}.pin div{padding:16px}.pin h3{font-family:var(--serif);font-size:26px;margin:0 0 5px;letter-spacing:-.05em}.pin p{margin:0;color:var(--muted);line-height:1.5;font-size:14px}
-    .player{display:grid;grid-template-columns:.8fr 1.2fr;gap:24px;align-items:center;padding:28px;border-radius:42px;background:linear-gradient(135deg,var(--glass),var(--glass2));border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(22px)}.disc{width:min(340px,75vw);aspect-ratio:1;margin:auto;border-radius:50%;background:radial-gradient(circle,var(--paper) 0 10%,#2b2028 11% 22%,transparent 23%),repeating-radial-gradient(circle,#2b2028 0 8px,#4a3145 9px 13px);box-shadow:inset 0 0 45px rgba(255,255,255,.15),var(--shadow),0 0 55px rgba(255,225,142,.28)}.disc.playing{animation:spin 3.7s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.track{font-family:var(--serif);font-size:clamp(34px,5vw,68px);line-height:.86;letter-spacing:-.07em;margin:0 0 12px}.progress{height:12px;border-radius:999px;background:var(--glass2);overflow:hidden;margin:22px 0}.bar{height:100%;width:0%;border-radius:999px;background:linear-gradient(90deg,var(--rose),var(--gold),var(--lilac))}.controls{display:flex;gap:10px;flex-wrap:wrap}.round{width:50px;height:50px;border:0;border-radius:50%;background:var(--glass);color:var(--ink);cursor:pointer;box-shadow:var(--soft);font-size:18px}.tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.tag{border:1px solid var(--line);background:var(--glass2);color:var(--muted);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800}
-    .guest{border-radius:44px;padding:26px;background:linear-gradient(135deg,rgba(255,248,239,.82),rgba(255,220,231,.48)),url("https://images.unsplash.com/photo-1510936111840-65e151ad71bb?auto=format&fit=crop&w=1800&q=85") center/cover;box-shadow:var(--shadow);border:1px solid rgba(255,255,255,.32)}body.night .guest{background:linear-gradient(135deg,rgba(18,15,29,.9),rgba(99,58,98,.62)),url("https://images.unsplash.com/photo-1510936111840-65e151ad71bb?auto=format&fit=crop&w=1800&q=85") center/cover}.window{max-width:880px;margin:auto;overflow:hidden;border-radius:24px;background:var(--glass);backdrop-filter:blur(22px);border:2px solid var(--coffee);box-shadow:12px 12px 0 rgba(113,75,56,.16)}.window-bar{padding:12px 16px;background:linear-gradient(90deg,var(--rose),var(--lilac));font-family:var(--pixel);font-size:10px;line-height:1.8}form{display:grid;gap:12px;padding:18px}input,textarea{width:100%;border:1px solid var(--line);border-radius:18px;padding:14px 15px;font:inherit;outline:none;color:#2f2425;background:rgba(255,255,255,.74)}textarea{min-height:115px;resize:vertical}.entries{display:grid;gap:10px;padding:0 18px 18px}.entry{font-family:"Courier New",monospace;border:1px dashed var(--coffee);border-radius:16px;padding:13px;background:rgba(255,255,255,.35)}.reveal{opacity:0;transform:translateY(30px);transition:opacity .8s,transform .8s}.reveal.show{opacity:1;transform:none}footer{padding:48px 0 80px;text-align:center;color:var(--muted)}
-    @media(max-width:1020px){.nav{border-radius:28px;flex-wrap:wrap}.menu{order:3;width:100%}.hero-world{min-height:920px}.polaroid{display:none}.home-widget{right:24px;bottom:25px}.thought{right:24px;top:310px}.section-head,.player{grid-template-columns:1fr}.mosaic{grid-auto-rows:82px}.big,.wide,.tall,.small,.mega{grid-column:span 12;grid-row:span 4}}@media(max-width:560px){.wrap{width:min(100% - 22px,1250px)}.nav{width:min(100% - 16px,1160px);top:8px}.logo{font-size:19px}.hero{padding-top:80px}.hero-world{border-radius:32px;min-height:880px}.hero-copy{left:20px;bottom:260px;width:calc(100% - 40px)}.home-widget{left:18px;right:18px;width:auto;bottom:18px}.thought{left:18px;right:18px;width:auto;top:390px}.s1,.s2,.s3,.s4{font-size:30px}.pins{columns:1}section{padding:42px 0}.player{padding:19px;border-radius:32px}}
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f4c9dc" />
+<title>lonelyshaw café — digital archive</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap');
+
+:root{
+  --display:'Playfair Display', Georgia, serif;
+  --ui:Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --ink:#30252c;
+  --muted:#765d6d;
+  --cream:#fff9f1;
+  --milk:#fffdf9;
+  --pink:#ffc9e1;
+  --hot:#ff8bbb;
+  --yellow:#ffe482;
+  --violet:#cdbbff;
+  --lilac:#efe8ff;
+  --glass:rgba(255,249,242,.72);
+  --glass-dark:rgba(70,49,63,.38);
+  --line:rgba(255,255,255,.48);
+  --shadow:0 34px 110px rgba(64,38,56,.28);
+  --soft:0 20px 60px rgba(49,30,43,.18);
+  --radius:38px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  min-height:100vh;
+  overflow-x:hidden;
+  font-family:var(--ui);
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 10% 8%,rgba(255,228,130,.54),transparent 25%),
+    radial-gradient(circle at 88% 7%,rgba(205,187,255,.7),transparent 29%),
+    radial-gradient(circle at 18% 82%,rgba(255,139,187,.45),transparent 29%),
+    linear-gradient(135deg,#ffe1ea 0%,#eee4ff 48%,#ffd3e5 100%);
+}
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  pointer-events:none;
+  background:
+    linear-gradient(rgba(255,255,255,.12) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.1) 1px,transparent 1px);
+  background-size:42px 42px;
+  mask-image:linear-gradient(to bottom,black,transparent 90%);
+}
+body::after{
+  content:"";
+  position:fixed;
+  inset:-20%;
+  z-index:-1;
+  pointer-events:none;
+  background:conic-gradient(from 120deg at 50% 50%,rgba(255,255,255,.2),rgba(255,201,225,.18),rgba(205,187,255,.2),rgba(255,228,130,.16),rgba(255,255,255,.2));
+  filter:blur(80px);
+  animation:aurora 18s ease-in-out infinite alternate;
+}
+@keyframes aurora{to{transform:rotate(10deg) scale(1.08)}}
+
+.noise{
+  position:fixed;inset:0;pointer-events:none;z-index:100;opacity:.055;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+}
+
+.page{width:min(1440px,calc(100% - 36px));margin:auto;padding:22px 0 42px}
+.topbar{
+  position:sticky;top:14px;z-index:50;
+  width:min(1180px,100%);min-height:66px;margin:0 auto 18px;padding:10px 12px 10px 18px;
+  display:flex;align-items:center;justify-content:space-between;gap:18px;
+  border-radius:999px;background:rgba(255,250,245,.72);backdrop-filter:blur(24px);
+  box-shadow:0 18px 54px rgba(87,54,73,.14),inset 0 0 0 1px rgba(255,255,255,.7);
+}
+.brand{font-family:var(--display);font-size:26px;font-weight:900;letter-spacing:-.055em;white-space:nowrap}
+.nav{display:flex;gap:8px;align-items:center;justify-content:center;flex:1}
+.nav a,.mini-btn{
+  text-decoration:none;border:1px solid transparent;border-radius:999px;padding:10px 13px;
+  color:rgba(48,37,44,.58);font-size:11px;font-weight:900;letter-spacing:.045em;text-transform:lowercase;
+  transition:.25s ease;background:transparent;
+}
+.nav a:hover,.mini-btn:hover{background:rgba(255,255,255,.55);color:var(--ink);border-color:rgba(48,37,44,.06);transform:translateY(-1px)}
+.status{display:flex;align-items:center;gap:8px;padding:10px 13px;border-radius:999px;background:#fff;color:rgba(48,37,44,.62);font-size:11px;font-weight:900;letter-spacing:.04em;box-shadow:inset 0 0 0 1px rgba(48,37,44,.06)}
+.status i{width:8px;height:8px;border-radius:50%;background:#9ee6a8;box-shadow:0 0 16px #8be998;display:block}
+
+.hero{
+  position:relative;overflow:hidden;border-radius:var(--radius);min-height:calc(100vh - 138px);
+  padding:clamp(26px,4.2vw,62px);color:var(--cream);
+  background:
+    radial-gradient(circle at 45% 25%,rgba(255,255,255,.33),transparent 23%),
+    radial-gradient(circle at 82% 62%,rgba(255,201,225,.24),transparent 29%),
+    linear-gradient(118deg,rgba(78,55,68,.82),rgba(145,105,126,.64) 52%,rgba(77,59,82,.78));
+  box-shadow:var(--shadow),inset 0 0 0 1px rgba(255,255,255,.22);
+}
+.hero::before{
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.75;
+  background:
+    radial-gradient(circle at 9% 9%,var(--yellow) 0 7px,transparent 8px),radial-gradient(circle at 22% 9%,var(--pink) 0 7px,transparent 8px),radial-gradient(circle at 35% 9%,var(--violet) 0 7px,transparent 8px),radial-gradient(circle at 48% 9%,var(--pink) 0 7px,transparent 8px),radial-gradient(circle at 61% 9%,var(--yellow) 0 7px,transparent 8px),radial-gradient(circle at 74% 9%,var(--violet) 0 7px,transparent 8px),radial-gradient(circle at 87% 9%,var(--yellow) 0 7px,transparent 8px);
+}
+.hero::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at var(--mx,54%) var(--my,42%),rgba(255,255,255,.26),transparent 32%);transition:.18s linear}
+
+.tabs{position:relative;z-index:2;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:34px}
+.tab{border:1px solid rgba(255,255,255,.2);border-radius:999px;padding:8px 13px;background:rgba(255,255,255,.12);backdrop-filter:blur(16px);font-size:10px;font-weight:900;letter-spacing:.08em;color:rgba(255,249,242,.76)}
+.tab.active{background:rgba(255,249,242,.84);color:var(--ink)}
+
+.hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,560px) minmax(470px,1fr);gap:min(7vw,86px);align-items:start}
+.kicker{display:inline-flex;align-items:center;gap:8px;margin-bottom:18px;padding:9px 14px;border-radius:999px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.24);backdrop-filter:blur(18px);font-size:11px;font-weight:900;letter-spacing:.08em;color:rgba(255,249,242,.92)}
+.kicker::before{content:"✦";color:var(--yellow)}
+h1{font-family:var(--display);font-size:clamp(46px,5.2vw,86px);line-height:.92;font-weight:900;letter-spacing:-.075em;color:#fffaf1;text-shadow:0 20px 70px rgba(27,17,24,.24)}
+.sub{margin-top:18px;font-family:var(--display);font-size:clamp(26px,2.8vw,42px);line-height:1.02;letter-spacing:-.055em;color:#fff1b7}
+.desc{margin-top:18px;max-width:540px;font-size:15.5px;line-height:1.75;font-weight:650;color:rgba(255,249,242,.82)}
+.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:26px}
+.btn{border:0;border-radius:999px;padding:15px 22px;font-size:14px;font-weight:950;cursor:pointer;transition:.25s ease;font-family:inherit}
+.btn:hover{transform:translateY(-3px)}
+.primary{color:#2f252b;background:linear-gradient(135deg,var(--yellow),#ffc6df);box-shadow:0 18px 38px rgba(255,213,117,.25)}
+.secondary{color:rgba(255,249,242,.94);background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.24);backdrop-filter:blur(18px)}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:24px;max-width:540px}
+.stat{padding:15px;border-radius:20px;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(18px)}
+.stat b{display:block;font-family:var(--display);font-size:28px;line-height:.9;letter-spacing:-.05em;color:#fff4bd}.stat span{display:block;margin-top:8px;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:900;color:rgba(255,249,242,.7)}
+
+.player-card{position:relative;margin-top:26px;width:min(455px,100%);padding:22px;border-radius:30px;background:rgba(255,250,244,.9);color:var(--ink);box-shadow:var(--soft);backdrop-filter:blur(22px);overflow:hidden}
+.player-card::before{content:"now playing / pink cassette";position:absolute;top:16px;right:20px;font-size:8px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:rgba(48,37,44,.28)}
+.player-card h2{font-family:var(--display);font-size:30px;line-height:.95;letter-spacing:-.055em;margin-bottom:12px}.player-card strong{display:block;font-size:14px;margin-bottom:8px}.player-card p{font-size:12.5px;line-height:1.6;font-weight:650;color:rgba(48,37,44,.68)}
+.player{display:grid;grid-template-columns:42px 1fr auto;gap:12px;align-items:center;margin-top:16px}.play{width:42px;height:42px;border:0;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:#fffaf1;cursor:pointer;font-weight:900}.bar{height:9px;border-radius:999px;background:rgba(48,37,44,.12);overflow:hidden}.fill{height:100%;width:36%;border-radius:inherit;background:linear-gradient(90deg,#f8a9c9,var(--yellow),var(--violet));animation:progress 9s ease-in-out infinite}.time{font-size:10px;font-weight:900;color:rgba(48,37,44,.42)}@keyframes progress{0%{width:27%}50%{width:82%}100%{width:43%}}
+
+.decor{position:relative;min-height:860px;isolation:isolate}.window,.artifact,.note,.polaroid,.sticker{position:absolute;pointer-events:none}.window{left:0;top:10px;width:320px;padding:17px;border-radius:24px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);backdrop-filter:blur(18px);box-shadow:0 18px 46px rgba(38,23,34,.12)}.dots{display:flex;gap:7px;margin-bottom:13px}.dots i{width:8px;height:8px;border-radius:50%;background:var(--pink)}.dots i:nth-child(2){background:var(--yellow)}.dots i:nth-child(3){background:var(--violet)}.window p{font-size:11.5px;line-height:1.62;font-weight:800;color:rgba(255,249,242,.82)}
+.artifact{right:22px;top:18px;width:166px;padding:14px;border-radius:22px;background:rgba(255,228,130,.88);color:#3b2d31;box-shadow:0 18px 42px rgba(38,23,34,.16);transform:rotate(5deg)}.artifact small,.note small{display:block;font-size:9px;font-weight:950;letter-spacing:.14em;text-transform:uppercase;opacity:.66}.artifact b{display:block;margin-top:8px;font-family:var(--display);font-size:29px;line-height:.9;letter-spacing:-.06em}
+.polaroid{background:#fffaf2;color:var(--ink);padding:12px 12px 18px;border:1px solid rgba(255,255,255,.66);box-shadow:0 28px 68px rgba(30,19,28,.25);transition:.3s ease}.photo{height:150px;border:1px solid rgba(48,37,44,.13);background-size:cover;background-position:center}.polaroid h3{margin-top:12px;font-family:var(--display);font-size:24px;line-height:.95;letter-spacing:-.05em}.polaroid p{margin-top:7px;font-size:11.5px;line-height:1.45;font-weight:800;color:rgba(48,37,44,.68)}.label{display:inline-block;margin-top:11px;padding:5px 8px;border-radius:999px;background:rgba(48,37,44,.08);font-size:8.5px;font-weight:950;letter-spacing:.12em;text-transform:uppercase;color:rgba(48,37,44,.58)}.label.hot{background:rgba(255,228,130,.58);color:rgba(48,37,44,.78)}
+.p1{width:166px;left:0;top:220px;transform:rotate(-6deg);z-index:2}.p1 .photo{height:112px;background:linear-gradient(135deg,#ffd5e7,#fff3cf,#b8a5ff)}.p2{width:196px;right:0;top:168px;transform:rotate(5deg);z-index:4}.p2 .photo{height:138px;background:radial-gradient(circle at 30% 30%,#ffe486 0 18%,transparent 19%),radial-gradient(circle at 70% 35%,#ff8aba 0 20%,transparent 21%),linear-gradient(135deg,#fdf1ff,#bca6ff)}.p3{width:270px;left:18px;top:488px;transform:rotate(-1.5deg);z-index:6;padding:14px 14px 20px}.p3 .photo{height:170px;background:linear-gradient(135deg,#463849,#f3b8d5)}.p3 h3{font-size:30px}.p4{width:142px;right:0;top:530px;bottom:auto;transform:rotate(4deg);z-index:3;opacity:.9}.p4 .photo{height:110px;background:linear-gradient(160deg,#fff6e8,#b9a4ff,#f3b8d5)}
+.note{width:220px;left:0;top:420px;padding:22px;border-radius:26px;background:rgba(250,205,229,.76);border:1px solid rgba(255,255,255,.22);box-shadow:0 18px 46px rgba(38,23,34,.16);transform:rotate(-3deg);z-index:5;color:#fffaf4}.note p{margin-top:10px;font-family:var(--display);font-size:20px;line-height:1.15;font-weight:900;letter-spacing:-.035em}.note.alt{left:auto;right:176px;top:auto;bottom:18px;width:266px;background:rgba(255,250,244,.94);color:var(--ink);transform:rotate(.5deg)}.note.alt small{color:#d79ab6}.note.alt p{font-size:19px}.sticker{z-index:8;filter:drop-shadow(0 7px 0 rgba(0,0,0,.15));animation:float 3.6s ease-in-out infinite alternate}.star{right:170px;top:270px;font-size:38px;color:#ffe023;-webkit-text-stroke:3px #151114;transform:rotate(14deg)}.heart{right:266px;top:138px;font-size:31px}.bear{right:90px;bottom:196px;font-size:35px}@keyframes float{to{translate:0 -9px}}
+.secret,.system{position:absolute;z-index:1;pointer-events:none;color:rgba(255,249,242,.3);font-size:11px;font-weight:850;letter-spacing:.04em}.secret{left:42px;bottom:22px}.system{right:34px;bottom:20px;text-align:right;line-height:1.5;color:rgba(255,255,255,.24)}
+
+.sections{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;margin-top:18px}.panel{border-radius:30px;padding:24px;background:rgba(255,250,245,.72);backdrop-filter:blur(22px);box-shadow:0 18px 54px rgba(87,54,73,.12),inset 0 0 0 1px rgba(255,255,255,.64)}.panel h2{font-family:var(--display);font-size:34px;line-height:.95;letter-spacing:-.06em}.panel p{margin-top:12px;color:var(--muted);font-size:14px;line-height:1.65;font-weight:650}.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}.chip{padding:9px 11px;border-radius:999px;background:#fff;color:rgba(48,37,44,.62);font-size:11px;font-weight:900;box-shadow:inset 0 0 0 1px rgba(48,37,44,.05)}.folder-list{display:grid;gap:10px;margin-top:16px}.folder{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border-radius:18px;background:rgba(255,255,255,.56);font-size:13px;font-weight:850;color:rgba(48,37,44,.72)}.folder span:last-child{color:rgba(48,37,44,.38);font-size:11px}
+
+@media(max-width:1120px){.nav{display:none}.hero-grid{grid-template-columns:1fr}.decor{min-height:820px;max-width:620px;margin:0 auto;width:100%}.content{max-width:720px}.desc{max-width:650px}.window{left:0;top:8px}.artifact{right:0;top:10px}.p1{left:0;top:190px}.p2{right:0;top:165px}.p3{left:34px;top:485px;transform:rotate(-1.5deg)}.p4{right:10px;top:515px;bottom:auto}.note,.note.alt{display:none}.sections{grid-template-columns:1fr}}
+@media(max-width:760px){.page{width:min(100% - 20px,680px);padding-top:12px}.topbar{top:8px;border-radius:26px}.brand{font-size:22px}.status{display:none}.hero{border-radius:30px;padding:25px 20px}.tabs{margin-bottom:22px}.tab{font-size:9px;padding:7px 10px}h1{font-size:clamp(39px,11.5vw,58px)}.desc{font-size:14px}.stats{grid-template-columns:1fr 1fr}.stat:last-child{grid-column:1/-1}.actions{flex-direction:column}.btn{width:100%}.decor{min-height:525px;overflow:hidden}.window,.artifact,.note,.sticker,.secret,.system{display:none}.p1{width:145px;top:18px;left:3%}.p1 .photo{height:104px}.p2{width:158px;top:36px;right:2%}.p2 .photo{height:108px}.p3{width:212px;top:220px;left:50%;transform:translateX(-50%) rotate(-1.5deg)}.p3 .photo{height:134px}.p3 h3{font-size:24px}.p4{width:120px;right:3%;top:auto;bottom:24px}.p4 .photo{height:88px}.polaroid{padding:9px 9px 13px}.polaroid h3{font-size:18px;margin-top:8px}.polaroid p{font-size:9.5px;line-height:1.34}.label{font-size:7.5px;margin-top:8px}.panel{border-radius:24px;padding:20px}.panel h2{font-size:29px}}
+@media(max-width:430px){.stats{grid-template-columns:1fr}.stat:last-child{grid-column:auto}.player{grid-template-columns:42px 1fr}.time{display:none}.decor{min-height:380px}.p3{left:8%;top:164px;transform:rotate(-1.5deg)}.p4{right:1%;top:auto;bottom:18px}.p2{right:-5px}.p1{left:-4px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* no-card version: clean lonelyshaw café mood panel */
+.hero-grid{grid-template-columns:minmax(0,590px) minmax(360px,1fr);align-items:center}
+.decor{min-height:620px;display:grid;place-items:center;position:relative;isolation:isolate}
+.decor .polaroid,.decor .artifact,.decor .note,.decor .sticker{display:none!important}
+.window{position:relative!important;left:auto!important;top:auto!important;width:min(520px,100%)!important;min-height:430px;padding:34px!important;border-radius:34px!important;background:linear-gradient(145deg,rgba(255,250,244,.18),rgba(255,255,255,.08))!important;box-shadow:0 28px 80px rgba(38,23,34,.16), inset 0 0 0 1px rgba(255,255,255,.22)!important;overflow:hidden}
+.window::before{content:"";position:absolute;inset:74px 40px 40px;border-radius:28px;background:radial-gradient(circle at 50% 44%,rgba(255,228,130,.72),transparent 24%),radial-gradient(circle at 64% 42%,rgba(255,139,187,.56),transparent 28%),radial-gradient(circle at 42% 60%,rgba(205,187,255,.48),transparent 34%);filter:blur(2px);opacity:.9}
+.window::after{content:"✦";position:absolute;right:56px;bottom:68px;font-size:46px;color:rgba(255,250,244,.74);text-shadow:0 0 28px rgba(255,255,255,.45)}
+.window p{position:relative;z-index:2;max-width:360px;margin-top:190px;font-family:var(--display);font-size:34px!important;line-height:1.02!important;letter-spacing:-.055em;color:#fffaf1!important;text-shadow:0 18px 56px rgba(27,17,24,.22)}
+.window p::before{content:"lonelyshaw café / quiet archive";display:block;margin-bottom:16px;font-family:var(--ui);font-size:10px;line-height:1;font-weight:950;letter-spacing:.14em;text-transform:uppercase;color:#fff1b7}
+.dots{position:relative;z-index:3}
+.decor::before{content:"";position:absolute;width:230px;height:230px;border-radius:50%;right:4%;top:4%;background:radial-gradient(circle,rgba(255,201,225,.48),transparent 68%);filter:blur(18px)}
+.decor::after{content:"made with ♥ for quiet people";position:absolute;right:28px;bottom:28px;font-size:12px;font-weight:850;color:rgba(255,249,242,.44)}
+@media(max-width:1120px){.hero-grid{grid-template-columns:1fr}.decor{min-height:430px;max-width:720px}.window{min-height:360px!important}.window p{margin-top:135px;font-size:30px!important}}
+@media(max-width:760px){.hero-grid{grid-template-columns:1fr}.decor{min-height:280px}.window{min-height:260px!important;padding:22px!important;border-radius:26px!important}.window::before{inset:58px 22px 28px}.window p{margin-top:92px;font-size:24px!important}.decor::after{display:none}}
+@media(max-width:430px){.decor{min-height:230px}.window{min-height:220px!important}.window p{font-size:21px!important;margin-top:76px}}
+
+</style>
 </head>
-<body class="night">
-  <div class="rain" id="rainLayer"></div><div class="stars" id="starsLayer"></div>
-  <header class="nav"><div class="logo">☕ lonelyshaw café</div><nav class="menu"><a href="#home">главная</a><a href="#pinterest">сохранёнки</a><a href="#winx">winx</a><a href="#gamer">игровая</a><a href="#nostalgia">2000-е</a><a href="#forest">лесная тропа</a><a href="#music">музыка</a></nav><button class="mode" id="modeBtn">🌙 вечер</button></header>
-  <main>
-    <section class="hero wrap" id="home"><div class="hero-world"><div class="garland"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><span class="sticker s1">💖</span><span class="sticker s2">⭐</span><span class="sticker s3">🧸</span><span class="sticker s4">🪽</span><div class="hero-copy reveal"><div class="eyebrow">личный дневник / winx aesthetic / сохранёнки</div><h1>lonelyshaw café</h1><p class="lead">личный интернет-дневник, где winx, плюши, музыка, старые журналы и ночной ноутбук живут на одной pinterest-доске.</p><p class="desc">это не интерьерный журнал. это ночной desktop, pinterest-доска, девичья комната, плюшевые игрушки, уход на столе, RGB-свет, дневник, лес за окном и чувство, что ты открыла тайный сайт из 2007.</p><div class="actions"><a class="btn primary" href="#pinterest">открыть сохранёнки ✨</a><button class="btn ghost" id="heroMusic">сейчас слушаю 🎧</button></div></div><figure class="polaroid po1"><img src="https://source.unsplash.com/800x1000/?плюши,collection,kawaii"><b>плюши</b></figure><figure class="polaroid po2"><img src="https://source.unsplash.com/800x1000/?digital-camera,2000-е,cd"><b>2000-е</b></figure><figure class="polaroid po3"><img src="https://source.unsplash.com/900x1000/?rgb-gaming-setup,gamer-girl"><b>игровая</b></figure><figure class="polaroid po4"><img src="https://source.unsplash.com/700x900/?уход,vanity,diary"><b>уход</b></figure><div class="thought"><small>МЫСЛЬ ДНЯ</small><p>иногда лучший побег — это не город, а вкладка, где всё красиво.</p></div><div class="home-widget"><h3>сейчас слушаю</h3><p class="mini-track" id="miniTrack">TV Girl — pink cassette mood<br>звук старого интернета, розовой тоски и ночного экрана.</p><div class="mini-controls"><button id="miniPlay">▶</button><div class="mini-bar"><div class="mini-fill"></div></div></div></div></div></section>
-    <section class="wrap reveal" id="pinterest"><div class="section-head"><h2>мозаика моих сохранёнок</h2><p class="note">хаотичная личная доска: ноутбук ночью, чай, дневники, уходовая косметика, аниме на проекторе, плюши, RGB-сетапы и дождь.</p></div><div class="pins"><article class="pin"><img src="https://source.unsplash.com/900x1200/?night-laptop,bedroom,fairy-lights"><div><h3>ноутбук ночью</h3><p>монитор светится, а мир наконец становится тише.</p></div></article><article class="pin"><img src="https://source.unsplash.com/900x1200/?anime-projector,bedroom"><div><h3>аниме на проекторе</h3><p>стена как кинотеатр, комната как секретный клуб.</p></div></article><article class="pin"><img src="https://source.unsplash.com/900x1200/?уход,evening-routine,vanity"><div><h3>уход shelf</h3><p>баночки, крем, чистая кожа и маленький ритуал.</p></div></article><article class="pin"><img src="https://source.unsplash.com/900x1200/?tea,books,diary"><div><h3>чай и дневник</h3><p>написать одну фразу — уже стало легче.</p></div></article><article class="pin"><img src="https://source.unsplash.com/900x1000/?rgb-gaming-setup,gamer-girl"><div><h3>cozy gamer girl</h3><p>rgb неон, мягкое кресло, игра на паузе.</p></div></article><article class="pin"><img src="https://source.unsplash.com/900x1200/?kawaii-плюши,plush-toys"><div><h3>коллекция плюшей</h3><p>мягкие свидетели всех ночных мыслей.</p></div></article><article class="pin"><img src="https://source.unsplash.com/900x1200/?old-magazines,2000-е,diary"><div><h3>старые журналы</h3><p>развороты, тесты, постеры и 2000-е в голове.</p></div></article><article class="pin"><img src="https://source.unsplash.com/900x1200/?rain-window,bedroom,night"><div><h3>дождливая спальня</h3><p>дождь делает всё похожим на сцену из фильма.</p></div></article>
-        <article class="pin"><img src="https://source.unsplash.com/900x1200/?bathtub,window,city-night"><div><h3>ванна у окна</h3><p>самая красивая версия «не трогайте меня, я в своём мире».</p></div></article>
-        <article class="pin"><img src="https://source.unsplash.com/900x1200/?2000s-digital-camera,compact-camera"><div><h3>цифровик 2000-х</h3><p>фото со вспышкой, размытые вечера и честная ностальгия.</p></div></article>
-        <article class="pin"><img src="https://source.unsplash.com/900x1200/?littlest-pet-shop,toy"><div><h3>Littlest Pet Shop</h3><p>маленькая игрушка, у которой точно была сложная личная жизнь.</p></div></article>
-        <article class="pin"><img src="https://source.unsplash.com/900x1200/?gaara-plush,anime-plush"><div><h3>плюшевый Gaara</h3><p>молчаливый хранитель кровати и ночных мыслей.</p></div></article></div></section>
-    <section class="wrap reveal" id="winx"><div class="section-head"><h2>winx, pony и маленькая магия</h2><p class="note">девичий коллаж из Flora, Musa, Stella, My Little Pony, Littlest Pet Shop, блёсток, наклеек и той самой детской магии, которая просто стала взрослее.</p></div><div class="mosaic"><article class="tile mega"><img src="https://static.wikia.nocookie.net/winx/images/9/9f/Flora_S8.png"><div class="txt"><h3>Flora</h3><p>цветы, мягкость, зелёная магия и забота о себе.</p></div></article><article class="tile small"><img src="https://static.wikia.nocookie.net/winx/images/9/90/Musa_S8.png"><div class="txt"><h3>Musa</h3><p>музыка понимает раньше людей.</p></div></article><article class="tile small"><img src="https://static.wikia.nocookie.net/winx/images/0/02/Stella_S8.png"><div class="txt"><h3>Stella</h3><p>сиять даже в дождь.</p></div></article><article class="diary-card tile small"><div class="pixel">MY LITTLE PONY<br>НАКЛЕЙКИ</div><div><h3>pony mood</h3><p>пастель, дружба, звёздочки и маленькая наивная радость.</p></div></article><article class="tile wide"><img src="https://source.unsplash.com/1000x900/?fairycore,glitter,stars"><div class="txt"><h3>fairy transformation</h3><p>крылья, glow и личная сила без объяснений.</p></div></article></div></section>
-    <section class="wrap reveal" id="gamer"><div class="section-head"><h2>моя игровая комната</h2><p class="note">не «просто компьютер», а ночной сетап: RGB, Minecraft, Sims, кружка чая, открытый чат, музыка, аниме на проекторе и плюшевая компания рядом.</p></div><div class="mosaic"><article class="tile big"><img src="https://source.unsplash.com/1200x950/?rgb-gaming-setup,pink"><div class="txt"><h3>RGB-сетап</h3><p>розово-сиреневый свет, поздний вечер и игра без дедлайнов.</p></div></article><article class="tile tall"><img src="https://source.unsplash.com/900x1200/?old-computer,2000-е,desk"><div class="txt"><h3>старый desktop</h3><p>немного 2007, немного tumblr.</p></div></article><article class="tile small"><img src="https://source.unsplash.com/800x1000/?digital-camera,2000-е,cd"><div class="txt"><h3>y2k-техника</h3><p>диски, провода, ностальгия.</p></div></article><article class="diary-card tile small"><div class="pixel">CURRENT QUEST</div><div><h3>игра недели</h3><p>Sims: построить идеальную спальню и снова забыть про самих симов.</p></div></article><article class="tile wide"><img src="https://source.unsplash.com/1000x900/?anime-plush,plushie"><div class="txt"><h3>плюшевая поддержка</h3><p>они молчат, но атмосфера сразу лучше.</p></div></article></div></section>
-    <section class="wrap reveal" id="nostalgia"><div class="section-head"><h2>архив моего 2007</h2><p class="note">как папка на старом компьютере: журналы, CD-диски, цифровые фотоаппараты, кнопочные телефоны, Winx, My Little Pony, LPS, дневники и смешные интернет-наклейки.</p></div><div class="mosaic"><article class="tile wide"><img src="https://source.unsplash.com/1100x900/?old-magazines,y2k,teen"><div class="txt"><h3>старые журналы</h3><p>тесты, постеры, блёстки и страницы, которые хотелось вырезать.</p></div></article><article class="tile small"><img src="https://source.unsplash.com/800x1000/?digital-camera,2000-е,cd"><div class="txt"><h3>CD-диски</h3><p>песни, подписанные маркером.</p></div></article><article class="diary-card tile small"><div class="pixel">GUESTBOOK 2007</div><div><h3>старый интернет</h3><p>пиксельные сердечки, курсоры, блёстки и тайный ник.</p></div></article><article class="tile big"><img src="https://source.unsplash.com/1200x900/?tea,books,journal"><div class="txt"><h3>дневник и чай</h3><p>записать мысли так, будто никто никогда не прочитает.</p></div></article></div></section>
-    <section class="wrap reveal" id="forest"><div class="section-head"><h2>дождливые лесные дороги</h2><p class="note">чтобы сайт не был только комнатой: иногда хочется выйти из интернета прямо в туманный лес, где тихо и красиво.</p></div><div class="pins"><article class="pin"><img src="https://source.unsplash.com/950x1200/?foggy-forest-road,rain"><div><h3>мокрая дорога</h3><p>дорога, которая ведёт в режим «меня нет».</p></div></article><article class="pin"><img src="https://source.unsplash.com/950x1200/?misty-forest,path"><div><h3>туманный лес</h3><p>хвойный воздух вместо уведомлений.</p></div></article><article class="pin"><img src="https://source.unsplash.com/950x1200/?rainy-forest-road"><div><h3>дождливый побег</h3><p>когда даже природа выглядит как pinterest.</p></div></article></div></section>
-    <section class="wrap reveal" id="music"><div class="section-head"><h2>музыкальный автомат</h2><p class="note">Lana, TV Girl, Mitski, The Neighbourhood, lofi и Winx OST для ночного кафе.</p></div><div class="player"><div class="disc" id="disc"></div><div><p class="track" id="trackName">TV Girl — pink cassette mood</p><p class="note" id="trackVibe">звук старого интернета, розовой тоски и ночного экрана.</p><div class="progress"><div class="bar" id="bar"></div></div><div class="controls"><button class="round" id="prev">⏮</button><button class="round" id="play">▶</button><button class="round" id="pause">⏸</button><button class="round" id="next">⏭</button></div><div class="tags" id="playlist"></div></div></div></section>
-    <section class="wrap reveal" id="guest"><div class="section-head"><h2>гостевая книга 2007</h2><p class="note">маленькое окно старого сайта, где можно оставить запись, будто интернет ещё был тайным клубом.</p></div><div class="guest"><div class="window"><div class="window-bar">lonelyshaw_guestbook.exe ✨ sticker hearts enabled</div><form id="guestForm"><input id="guestName" placeholder="имя" maxlength="30" required><textarea id="guestMessage" placeholder="сообщение" maxlength="220" required></textarea><button class="btn primary" type="submit">оставить запись</button></form><div class="entries" id="entries"><div class="entry"><b>musa:</b> этот сайт выглядит как папка с любимыми сохранёнками ♡</div><div class="entry"><b>flora:</b> мягко, волшебно и очень лично.</div></div></div></div></section>
-  </main><footer class="wrap">lonelyshaw café — личный интернет-дневник девушки из 2000-х ☕🌙✨🧸</footer>
-  <script>
-    const body=document.body,rain=document.getElementById('rainLayer'),stars=document.getElementById('starsLayer'),modeBtn=document.getElementById('modeBtn');for(let i=0;i<125;i++){const d=document.createElement('i');d.style.left=Math.random()*100+'vw';d.style.animationDelay=Math.random()*2+'s';d.style.animationDuration=(.75+Math.random()*1.25)+'s';d.style.opacity=.25+Math.random()*.65;rain.appendChild(d)}for(let i=0;i<44;i++){const s=document.createElement('i');s.style.left=Math.random()*120+'vw';s.style.animationDelay=Math.random()*10+'s';s.style.animationDuration=(5+Math.random()*8)+'s';stars.appendChild(s)}modeBtn.onclick=()=>{body.classList.toggle('night');modeBtn.textContent=body.classList.contains('night')?'🌙 вечер':'☀️ день'};const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('show')}),{threshold:.12});document.querySelectorAll('.reveal').forEach(el=>io.observe(el));document.addEventListener('mousemove',e=>{const x=e.clientX/window.innerWidth-.5,y=e.clientY/window.innerHeight-.5;document.querySelectorAll('.polaroid').forEach((p,i)=>p.style.translate=`${x*(i+1)*8}px ${y*(i+1)*6}px`)});
-    const tracks=[['TV Girl — pink cassette mood','звук старого интернета, розовой тоски и ночного экрана.'],['Lana Del Rey — rainy glamour','красиво, медленно, как дождь по стеклу.'],['Cigarettes After Sex — midnight room','тихий голос, тёмная комната и лампа у кровати.'],['Mitski — soft heartbreak','аккуратная грусть, которую хочется завернуть в плед.'],['The Neighbourhood — sweater weather','серое небо, кофе навынос и идеальная осень.'],['lofi music — diary desk','бит, клавиатура, чай и дневник.'],['Winx Club OST — fairy transformation','блёстки, крылья и детство рядом.'],['Arctic Monkeys — late taxi home','город ночью и чуть-чуть дерзости.']];let current=0,playing=false,progress=0,timer;const trackName=document.getElementById('trackName'),trackVibe=document.getElementById('trackVibe'),bar=document.getElementById('bar'),disc=document.getElementById('disc'),playlist=document.getElementById('playlist'),miniTrack=document.getElementById('miniTrack');tracks.forEach((t,i)=>{const b=document.createElement('button');b.className='tag';b.textContent=t[0].split('—')[0].trim();b.onclick=()=>{current=i;render();playMusic()};playlist.appendChild(b)});function render(){trackName.textContent=tracks[current][0];trackVibe.textContent=tracks[current][1];miniTrack.innerHTML=tracks[current][0]+'<br>'+tracks[current][1];progress=0;bar.style.width='0%'}function playMusic(){playing=true;disc.classList.add('playing');clearInterval(timer);timer=setInterval(()=>{progress+=1.1;if(progress>=100)nextTrack();bar.style.width=progress+'%'},240)}function pauseMusic(){playing=false;disc.classList.remove('playing');clearInterval(timer)}function nextTrack(){current=(current+1)%tracks.length;render();if(playing)playMusic()}function prevTrack(){current=(current-1+tracks.length)%tracks.length;render();if(playing)playMusic()}document.getElementById('play').onclick=playMusic;document.getElementById('pause').onclick=pauseMusic;document.getElementById('next').onclick=nextTrack;document.getElementById('prev').onclick=prevTrack;document.getElementById('miniPlay').onclick=playMusic;document.getElementById('heroMusic').onclick=()=>{document.getElementById('music').scrollIntoView({behavior:'smooth'});playMusic()};
-    const form=document.getElementById('guestForm'),entries=document.getElementById('entries'),saved=JSON.parse(localStorage.getItem('lonelyshaw_guestbook_v3')||'[]');saved.forEach(addEntry);form.addEventListener('submit',e=>{e.preventDefault();const item={name:guestName.value.trim(),msg:guestMessage.value.trim()};if(!item.name||!item.msg)return;addEntry(item);saved.unshift(item);localStorage.setItem('lonelyshaw_guestbook_v3',JSON.stringify(saved.slice(0,14)));form.reset()});function addEntry(item){const div=document.createElement('div');div.className='entry';div.innerHTML=`<b>${escapeHtml(item.name)}:</b> ${escapeHtml(item.msg)}`;entries.prepend(div)}function escapeHtml(str){return str.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-  </script>
+<body>
+<div class="noise" aria-hidden="true"></div>
+<div class="page">
+  <header class="topbar">
+    <div class="brand">☕ lonelyshaw café</div>
+    <nav class="nav" aria-label="Навигация">
+      <a href="#archive">архив</a><a href="#folders">папки</a><a href="#playlist">кассетник</a><a href="#notes">notes.txt</a>
+    </nav>
+    <div class="status"><i></i> online at 02:17</div>
+  </header>
+
+  <main class="hero" id="archive">
+    <div class="tabs" aria-hidden="true">
+      <span class="tab active">restored session</span><span class="tab">pinterest folder</span><span class="tab">winx_archive.zip</span><span class="tab">night playlist</span><span class="tab">notes.txt</span>
+    </div>
+
+    <div class="hero-grid">
+      <section class="content">
+        <div class="kicker">личная папка / восстановленная сессия / 02:17</div>
+        <h1>некоторые вещи слишком жалко оставлять в прошлом.</h1>
+        <div class="sub">поэтому они остаются здесь.</div>
+        <p class="desc">песни, которые включаются только ночью. картинки, сохранённые быстрее, чем успеваешь понять почему. старые вкладки браузера. заметки, написанные в три часа ночи. маленькие вещи, пережившие новые телефоны, чистки памяти и очередные попытки начать всё заново.</p>
+        <div class="actions">
+          <button class="btn primary" data-scroll="#folders">🗂 открыть папку</button>
+          <button class="btn secondary" data-scroll="#playlist">🎧 что сейчас играет?</button>
+        </div>
+        <div class="stats" aria-label="Статистика архива">
+          <div class="stat"><b data-count="427">0</b><span>сохранёнок</span></div>
+          <div class="stat"><b>02:17</b><span>последний вход</span></div>
+          <div class="stat"><b data-count="7">0</b><span>вкладок найдено</span></div>
+        </div>
+        <section class="player-card" id="playlist">
+          <h2>сейчас в наушниках</h2>
+          <strong>TV Girl — Pink Cassette</strong>
+          <p>звук розового свечения монитора, открытых вкладок и обещания лечь спать ещё час назад.</p>
+          <div class="player">
+            <button class="play" aria-label="Включить или поставить на паузу">▶</button>
+            <div class="bar"><div class="fill"></div></div>
+            <span class="time">02:51</span>
+          </div>
+        </section>
+      </section>
+
+      <section class="decor" aria-hidden="true">
+        <div class="window">
+          <div class="dots"><i></i><i></i><i></i></div>
+          <p>тихий архив вещей, которые не хочется удалять.</p>
+        </div>
+      </section>
+    </div>
+    <div class="secret">found inside: /desktop/lonelyshaw/never-delete</div>
+    <div class="system">session restored successfully<br>7 tabs recovered</div>
+  </main>
+
+  <section class="sections" id="folders">
+    <article class="panel">
+      <h2>архив не пытается быть полезным.</h2>
+      <p>он просто хранит атмосферу: розовый свет, поздний интернет, случайные скриншоты, музыку и маленькое ощущение, что некоторые файлы правда нельзя удалять.</p>
+      <div class="chips"><span class="chip">old desktop</span><span class="chip">nightcore energy</span><span class="chip">winx folder</span><span class="chip">soft nostalgia</span><span class="chip">never delete</span></div>
+    </article>
+    <aside class="panel" id="notes">
+      <h2>папки</h2>
+      <div class="folder-list">
+        <div class="folder"><span>🩷 saved pictures</span><span>427 files</span></div>
+        <div class="folder"><span>🎧 night playlist</span><span>31 tracks</span></div>
+        <div class="folder"><span>🧸 soft things</span><span>13 notes</span></div>
+        <div class="folder"><span>✨ magic.exe</span><span>running</span></div>
+      </div>
+    </aside>
+  </section>
+</div>
+<script>
+const hero=document.querySelector('.hero');
+hero?.addEventListener('pointermove',e=>{const r=hero.getBoundingClientRect();hero.style.setProperty('--mx',`${((e.clientX-r.left)/r.width)*100}%`);hero.style.setProperty('--my',`${((e.clientY-r.top)/r.height)*100}%`)});
+
+document.querySelectorAll('[data-scroll]').forEach(btn=>btn.addEventListener('click',()=>document.querySelector(btn.dataset.scroll)?.scrollIntoView({behavior:'smooth',block:'start'})));
+
+const play=document.querySelector('.play');
+let playing=false;
+play?.addEventListener('click',()=>{playing=!playing;play.textContent=playing?'Ⅱ':'▶';document.querySelector('.fill').style.animationPlayState=playing?'running':'paused'});
+
+document.querySelectorAll('[data-count]').forEach(el=>{const target=Number(el.dataset.count);let value=0;const step=Math.max(1,Math.ceil(target/42));const tick=()=>{value=Math.min(target,value+step);el.textContent=value;if(value<target)requestAnimationFrame(tick)};tick()});
+</script>
 </body>
 </html>
