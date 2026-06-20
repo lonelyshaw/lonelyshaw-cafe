@@ -3,6 +3,8 @@ from typing import Any
 
 import aiosqlite
 
+from lonelyroom_bot.pets import FIRST_PET, Pet, eligible_pets
+
 
 SCHEMA = """
 PRAGMA foreign_keys = ON;
@@ -348,6 +350,40 @@ class Database:
             10,
         )
 
+    async def unlocked_pet_codes(self, user_id: int) -> set[str]:
+        db = self._db()
+        async with db.execute(
+            "SELECT pet_code FROM user_pets WHERE user_id = ?",
+            (user_id,),
+        ) as cursor:
+            rows = await cursor.fetchall()
+        return {str(row["pet_code"]) for row in rows}
+
+    async def unlock_pet(self, user_id: int, pet: Pet) -> bool:
+        db = self._db()
+        cursor = await db.execute(
+            """
+            INSERT OR IGNORE INTO user_pets (user_id, pet_code, name, description)
+            VALUES (?, ?, ?, ?)
+            """,
+            (user_id, pet.code, pet.name, pet.description),
+        )
+        await db.commit()
+        return cursor.rowcount > 0
+
+    async def unlock_eligible_pets(self, user_id: int) -> list[Pet]:
+        stats = await self.room_stats(user_id)
+        unlocked_codes = await self.unlocked_pet_codes(user_id)
+        unlocked_now = []
+
+        for pet in eligible_pets(stats):
+            if pet.code in unlocked_codes:
+                continue
+            if await self.unlock_pet(user_id, pet):
+                unlocked_now.append(pet)
+
+        return unlocked_now
+
     async def add_mirror_entry(self, user_id: int, text: str) -> None:
         await self._execute_write(
             "INSERT INTO mirror_entries (user_id, text) VALUES (?, ?)",
@@ -369,27 +405,13 @@ class Database:
 
     async def can_unlock_first_pet(self, user_id: int) -> bool:
         stats = await self.room_stats(user_id)
-        return stats["answers"] >= 1 and stats["book"] >= 1 and stats["moments"] >= 1
+        return FIRST_PET.is_ready(stats)
 
     async def unlock_first_pet_if_ready(self, user_id: int) -> bool:
         if not await self.can_unlock_first_pet(user_id):
             return False
 
-        db = self._db()
-        cursor = await db.execute(
-            """
-            INSERT OR IGNORE INTO user_pets (user_id, pet_code, name, description)
-            VALUES (?, ?, ?, ?)
-            """,
-            (
-                user_id,
-                "forest_fox",
-                "🦊 Лесной лисёнок",
-                "Он появляется рядом с теми, кто учится быть мягче к себе.",
-            ),
-        )
-        await db.commit()
-        return cursor.rowcount > 0
+        return await self.unlock_pet(user_id, FIRST_PET)
 
     async def _execute_write(self, query: str, params: tuple[Any, ...]) -> None:
         db = self._db()

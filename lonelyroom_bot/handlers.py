@@ -41,12 +41,11 @@ from lonelyroom_bot.keyboards import (
     media_menu,
     mood_menu,
 )
+from lonelyroom_bot.pets import PETS, action_total
 from lonelyroom_bot.states import BookForm, DailyQuestionForm, LetterForm, MirrorForm, MomentForm, TalkForm
 from lonelyroom_bot.texts import (
     EMPTY_TEXT,
     EVENING_RECIPES,
-    FIRST_PET_DESCRIPTION,
-    FIRST_PET_NAME,
     MENU_TEXT,
     SMALL_DISCOVERIES,
     WELCOME_TEXT,
@@ -139,25 +138,52 @@ async def answer_conversation(
 
 
 def important_action_total(stats: dict[str, int]) -> int:
-    return (
-        stats["book"]
-        + stats["moments"]
-        + stats["letters"]
-        + stats["answers"]
-        + stats["moods"]
-        + stats["mirror"]
-    )
+    return action_total(stats)
 
 
 def room_atmosphere(stats: dict[str, int]) -> str:
     total = important_action_total(stats)
     if total <= 2:
-        return "пустая тихая комната"
+        return "Комната ещё почти пустая, но в ней уже есть место для тебя."
     if total <= 5:
-        return "в комнате горит маленькая лампа"
+        return "В комнате стало чуть теплее. Где-то горит маленький свет."
     if total < 10:
-        return "на полке появляются книги и письма"
-    return "это место уже похоже на дом"
+        return "На полке появляются первые следы дней: страницы, письма и моменты."
+    return "Это место уже похоже на дом."
+
+
+def room_light(stats: dict[str, int]) -> str:
+    total = important_action_total(stats)
+    if total <= 2:
+        return "сумерки"
+    if total <= 5:
+        return "маленькая лампа"
+    if total < 10:
+        return "тёплый вечерний свет"
+    return "домашний свет"
+
+
+def room_shelf(stats: dict[str, int]) -> str:
+    total_saved = stats["book"] + stats["moments"] + stats["letters"] + stats["answers"]
+    if total_saved == 0:
+        return "пустая полка"
+    if total_saved <= 5:
+        return "первые записи"
+    if total_saved <= 10:
+        return "книги, письма и моменты"
+    return "целая маленькая история"
+
+
+def nearby_pet_name(pet_rows: list) -> str:
+    if not pet_rows:
+        return "пока тихо"
+
+    pet_codes = {str(row["pet_code"]) for row in pet_rows}
+    for pet in PETS:
+        if pet.code in pet_codes:
+            return pet.title
+
+    return str(pet_rows[0]["name"]).split(" ", 1)[-1]
 
 
 def archive_block(title: str, rows: list, field: str = "text") -> str:
@@ -184,15 +210,16 @@ def daily_answers_block(rows: list) -> str:
 
 
 async def maybe_unlock_pet(message: Message, db: Database, user_id: int) -> bool:
-    if not await db.unlock_first_pet_if_ready(user_id):
+    unlocked_pets = await db.unlock_eligible_pets(user_id)
+    if not unlocked_pets:
         return False
 
-    await message.answer(
-        "Кажется, здесь кто-то тихо устроился рядом.\n\n"
-        f"<b>{FIRST_PET_NAME}</b>\n"
-        f"{FIRST_PET_DESCRIPTION}",
-        reply_markup=main_menu(),
-    )
+    for pet in unlocked_pets:
+        await message.answer(
+            f"{pet.emoji} В комнате кто-то появился.\n\n"
+            f"{pet.arrival_text}",
+            reply_markup=main_menu(),
+        )
     return True
 
 
@@ -236,26 +263,22 @@ async def back_to_menu(message: Message, state: FSMContext, db: Database) -> Non
 @router.message(StateFilter(None), F.text == MENU_ROOM)
 async def show_room(message: Message, db: Database) -> None:
     user_id = await get_user_id(message, db)
-    await db.unlock_first_pet_if_ready(user_id)
+    await db.unlock_eligible_pets(user_id)
     stats = await db.room_stats(user_id)
-    moments = await db.latest_moments(user_id, limit=1)
-    last_moment = ""
-
-    if moments:
-        last_moment = f"\n\nПоследний момент:\n{escape(trim_text(str(moments[0]['text']), 120))}"
+    pets_rows = await db.latest_pets(user_id)
 
     text = (
-        "<b>🏡 Моя комната</b>\n\n"
-        f"Сейчас это: {escape(room_atmosphere(stats))}.\n\n"
-        f"📖 Страниц: {stats['book']}\n"
-        f"🕯 Моментов: {stats['moments']}\n"
-        f"💌 Писем: {stats['letters']}\n"
-        f"🌙 Ответов дня: {stats['answers']}\n"
-        f"🌧 Настроений: {stats['moods']}\n"
-        f"🦊 Питомцев: {stats['pets']}"
-        f"{last_moment}\n\n"
-        "Комната становится теплее от всего, что вы оставляете здесь.\n"
-        "Даже маленькая запись может однажды стать окном в этот вечер."
+        "🏡 <b>Моя комната</b>\n\n"
+        "🌧 За окном: тихий дождь\n"
+        f"🕯 Свет: {escape(room_light(stats))}\n"
+        f"📚 Полка: {escape(room_shelf(stats))}\n"
+        f"🦊 Рядом: {escape(nearby_pet_name(pets_rows))}\n\n"
+        f"Страниц: {stats['book']}\n"
+        f"Моментов: {stats['moments']}\n"
+        f"Писем: {stats['letters']}\n"
+        f"Ответов дня: {stats['answers']}\n"
+        f"Питомцев: {stats['pets']}\n\n"
+        f"{escape(room_atmosphere(stats))}"
     )
     await message.answer(text, reply_markup=main_menu())
 
@@ -572,28 +595,42 @@ async def evening(message: Message, db: Database) -> None:
 @router.message(StateFilter(None), F.text == MENU_PETS)
 async def pets(message: Message, db: Database) -> None:
     user_id = await get_user_id(message, db)
-    await db.unlock_first_pet_if_ready(user_id)
+    await db.unlock_eligible_pets(user_id)
     pets_rows = await db.latest_pets(user_id)
+    unlocked_codes = {str(row["pet_code"]) for row in pets_rows}
 
     if not pets_rows:
-        await message.answer(
+        closed_items = []
+        for pet in PETS:
+            closed_items.append(f"{pet.name}\nОткроется: {pet.condition_text}")
+
+        text = (
             "🦊 Здесь пока тихо.\n\n"
-            "Продолжай заполнять свою комнату.\n"
-            "Первый питомец скоро появится.",
-            reply_markup=main_menu(),
+            "Но кажется, кто-то уже прислушивается к твоей комнате.\n\n"
+            "<b>Закрытые питомцы</b>\n\n"
+            + "\n\n".join(escape(item) for item in closed_items)
         )
+        await message.answer(text, reply_markup=main_menu())
         return
 
-    items = []
-    for row in pets_rows:
-        description = escape(str(row["description"])).replace(
-            "теми, кто",
-            "теми,\nкто",
-        )
-        items.append(f"<b>{escape(str(row['name']))}</b>\n\n{description}")
+    opened_items = []
+    closed_items = []
+
+    for pet in PETS:
+        if pet.code in unlocked_codes:
+            opened_items.append(f"<b>{escape(pet.name)}</b>\n{escape(pet.description)}")
+        else:
+            closed_items.append(f"{escape(pet.name)}\nОткроется: {escape(pet.condition_text)}")
+
+    opened_block = "<b>Открытые питомцы</b>\n\n" + "\n\n".join(opened_items)
+    closed_block = ""
+    if closed_items:
+        closed_block = "\n\n<b>Закрытые питомцы</b>\n\n" + "\n\n".join(closed_items)
 
     await message.answer(
-        "\n\n".join(items),
+        "🦊 <b>Питомцы</b>\n\n"
+        f"{opened_block}"
+        f"{closed_block}",
         reply_markup=main_menu(),
     )
 
