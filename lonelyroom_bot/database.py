@@ -93,6 +93,37 @@ CREATE TABLE IF NOT EXISTS mirror_entries (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS room_profiles (
+    user_id INTEGER PRIMARY KEY,
+    room_nickname TEXT UNIQUE,
+    room_privacy TEXT NOT NULL DEFAULT 'private',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS room_notes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    room_owner_id INTEGER NOT NULL,
+    guest_user_id INTEGER NOT NULL,
+    guest_room_nickname TEXT,
+    text TEXT NOT NULL,
+    is_read INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (room_owner_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (guest_user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS room_lights (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    room_owner_id INTEGER NOT NULL,
+    guest_user_id INTEGER NOT NULL,
+    is_seen INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (room_owner_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (guest_user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_book_entries_user_created
     ON book_entries (user_id, created_at DESC);
 
@@ -116,6 +147,22 @@ CREATE INDEX IF NOT EXISTS idx_user_pets_user_unlocked
 
 CREATE INDEX IF NOT EXISTS idx_mirror_entries_user_created
     ON mirror_entries (user_id, created_at DESC, id DESC);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_room_profiles_nickname
+    ON room_profiles (room_nickname)
+    WHERE room_nickname IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_room_notes_owner_created
+    ON room_notes (room_owner_id, created_at DESC, id DESC);
+
+CREATE INDEX IF NOT EXISTS idx_room_notes_owner_unread
+    ON room_notes (room_owner_id, is_read, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_room_lights_owner_created
+    ON room_lights (room_owner_id, created_at DESC, id DESC);
+
+CREATE INDEX IF NOT EXISTS idx_room_lights_owner_unseen
+    ON room_lights (room_owner_id, is_seen, created_at DESC);
 """
 
 
@@ -196,6 +243,151 @@ class Database:
                 stats[key] = int(row["amount"] if row else 0)
 
         return stats
+
+    async def ensure_room_profile(self, user_id: int) -> None:
+        await self._execute_write(
+            "INSERT OR IGNORE INTO room_profiles (user_id) VALUES (?)",
+            (user_id,),
+        )
+
+    async def room_profile(self, user_id: int) -> aiosqlite.Row | None:
+        await self.ensure_room_profile(user_id)
+        db = self._db()
+        async with db.execute(
+            """
+            SELECT user_id, room_nickname, room_privacy, created_at, updated_at
+            FROM room_profiles
+            WHERE user_id = ?
+            """,
+            (user_id,),
+        ) as cursor:
+            return await cursor.fetchone()
+
+    async def set_room_nickname(self, user_id: int, nickname: str) -> bool:
+        await self.ensure_room_profile(user_id)
+        db = self._db()
+        try:
+            cursor = await db.execute(
+                """
+                UPDATE room_profiles
+                SET room_nickname = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE user_id = ?
+                """,
+                (nickname, user_id),
+            )
+            await db.commit()
+        except aiosqlite.IntegrityError:
+            return False
+        return cursor.rowcount > 0
+
+    async def set_room_privacy(self, user_id: int, privacy: str) -> None:
+        await self.ensure_room_profile(user_id)
+        await self._execute_write(
+            """
+            UPDATE room_profiles
+            SET room_privacy = ?, updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ?
+            """,
+            (privacy, user_id),
+        )
+
+    async def find_room_by_nickname(self, nickname: str) -> aiosqlite.Row | None:
+        db = self._db()
+        async with db.execute(
+            """
+            SELECT user_id, room_nickname, room_privacy
+            FROM room_profiles
+            WHERE room_nickname = ?
+            """,
+            (nickname,),
+        ) as cursor:
+            return await cursor.fetchone()
+
+    async def room_light_count(self, room_owner_id: int) -> int:
+        db = self._db()
+        async with db.execute(
+            "SELECT COUNT(*) AS amount FROM room_lights WHERE room_owner_id = ?",
+            (room_owner_id,),
+        ) as cursor:
+            row = await cursor.fetchone()
+        return int(row["amount"] if row else 0)
+
+    async def door_note_count(self, room_owner_id: int) -> int:
+        db = self._db()
+        async with db.execute(
+            "SELECT COUNT(*) AS amount FROM room_notes WHERE room_owner_id = ?",
+            (room_owner_id,),
+        ) as cursor:
+            row = await cursor.fetchone()
+        return int(row["amount"] if row else 0)
+
+    async def add_room_note(
+        self,
+        room_owner_id: int,
+        guest_user_id: int,
+        guest_room_nickname: str | None,
+        text: str,
+    ) -> None:
+        await self._execute_write(
+            """
+            INSERT INTO room_notes (room_owner_id, guest_user_id, guest_room_nickname, text)
+            VALUES (?, ?, ?, ?)
+            """,
+            (room_owner_id, guest_user_id, guest_room_nickname, text),
+        )
+
+    async def latest_room_notes(self, room_owner_id: int, limit: int = 5) -> list[aiosqlite.Row]:
+        return await self._fetch_latest(
+            """
+            SELECT text, guest_room_nickname, created_at
+            FROM room_notes
+            WHERE room_owner_id = ?
+            ORDER BY created_at DESC, id DESC
+            LIMIT ?
+            """,
+            room_owner_id,
+            limit,
+        )
+
+    async def unread_room_notes(self, room_owner_id: int, limit: int = 5) -> list[aiosqlite.Row]:
+        return await self._fetch_latest(
+            """
+            SELECT id, text, guest_room_nickname, created_at
+            FROM room_notes
+            WHERE room_owner_id = ? AND is_read = 0
+            ORDER BY created_at DESC, id DESC
+            LIMIT ?
+            """,
+            room_owner_id,
+            limit,
+        )
+
+    async def mark_room_notes_read(self, room_owner_id: int) -> None:
+        await self._execute_write(
+            "UPDATE room_notes SET is_read = 1 WHERE room_owner_id = ? AND is_read = 0",
+            (room_owner_id,),
+        )
+
+    async def add_room_light(self, room_owner_id: int, guest_user_id: int) -> None:
+        await self._execute_write(
+            "INSERT INTO room_lights (room_owner_id, guest_user_id) VALUES (?, ?)",
+            (room_owner_id, guest_user_id),
+        )
+
+    async def unseen_room_lights_count(self, room_owner_id: int) -> int:
+        db = self._db()
+        async with db.execute(
+            "SELECT COUNT(*) AS amount FROM room_lights WHERE room_owner_id = ? AND is_seen = 0",
+            (room_owner_id,),
+        ) as cursor:
+            row = await cursor.fetchone()
+        return int(row["amount"] if row else 0)
+
+    async def mark_room_lights_seen(self, room_owner_id: int) -> None:
+        await self._execute_write(
+            "UPDATE room_lights SET is_seen = 1 WHERE room_owner_id = ? AND is_seen = 0",
+            (room_owner_id,),
+        )
 
     async def add_book_entry(self, user_id: int, text: str) -> None:
         await self._execute_write(

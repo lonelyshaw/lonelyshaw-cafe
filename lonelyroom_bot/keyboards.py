@@ -11,6 +11,8 @@ MENU_PETS = "🦊 Питомцы"
 MENU_MIRROR = "🪞 Зеркало"
 MENU_ARCHIVE = "🧳 Архив"
 MENU_SETTINGS = "⚙️ Настройки"
+MENU_FRIEND_ROOMS = "🚪 Комнаты друзей"
+MENU_DOOR_NOTES = "💌 Записки у двери"
 MENU_MEDIA = "🎬 Медиа"
 
 OLD_MENU_MOMENT = "✨ Сохранить момент"
@@ -29,6 +31,30 @@ LETTER_READ = "📬 Последние письма"
 MEDIA_BOOKS = "📚 Книги"
 MEDIA_MOVIES = "🎬 Фильмы"
 MEDIA_MUSIC = "🎵 Музыка"
+
+ROOM_CREATE_NICKNAME = "Создать ник комнаты"
+ROOM_PRIVACY = "🔒 Приватность комнаты"
+
+GUEST_LEAVE_NOTE = "💌 Оставить записку"
+GUEST_LEAVE_LIGHT = "✨ Оставить огонёк"
+
+PRIVACY_ONLY_ME = "🔒 Только я"
+PRIVACY_BY_NICKNAME = "👥 Только друзья по нику"
+PRIVACY_PUBLIC = "🌙 Открыта всем по нику"
+
+PRIVACY_OPTIONS = (
+    PRIVACY_ONLY_ME,
+    PRIVACY_BY_NICKNAME,
+    PRIVACY_PUBLIC,
+)
+
+PRIVACY_VALUES = {
+    PRIVACY_ONLY_ME: "private",
+    PRIVACY_BY_NICKNAME: "nickname",
+    PRIVACY_PUBLIC: "public",
+}
+
+PRIVACY_LABELS = {value: label for label, value in PRIVACY_VALUES.items()}
 
 MOOD_CALM = "спокойно"
 MOOD_ANXIOUS = "тревожно"
@@ -55,6 +81,7 @@ def main_menu() -> ReplyKeyboardMarkup:
             [KeyboardButton(text=MENU_MOMENT), KeyboardButton(text=MENU_LETTERS)],
             [KeyboardButton(text=MENU_PETS), KeyboardButton(text=MENU_MEDIA)],
             [KeyboardButton(text=MENU_MIRROR), KeyboardButton(text=MENU_ARCHIVE)],
+            [KeyboardButton(text=MENU_FRIEND_ROOMS), KeyboardButton(text=MENU_DOOR_NOTES)],
             [KeyboardButton(text=MENU_SETTINGS)],
         ],
         is_persistent=True,
@@ -107,6 +134,58 @@ def mood_menu() -> ReplyKeyboardMarkup:
         ],
         resize_keyboard=True,
         input_field_placeholder="Выберите настроение дня",
+    )
+
+
+def room_menu(has_nickname: bool) -> ReplyKeyboardMarkup:
+    keyboard = []
+    if not has_nickname:
+        keyboard.append([KeyboardButton(text=ROOM_CREATE_NICKNAME)])
+    else:
+        keyboard.append([KeyboardButton(text=ROOM_CREATE_NICKNAME), KeyboardButton(text=ROOM_PRIVACY)])
+    keyboard.append([KeyboardButton(text=MENU_DOOR_NOTES), KeyboardButton(text=BACK)])
+
+    return ReplyKeyboardMarkup(
+        keyboard=keyboard,
+        resize_keyboard=True,
+        input_field_placeholder="Моя комната",
+    )
+
+
+def settings_menu() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=ROOM_CREATE_NICKNAME)],
+            [KeyboardButton(text=ROOM_PRIVACY)],
+            [KeyboardButton(text=BACK)],
+        ],
+        resize_keyboard=True,
+        input_field_placeholder="Настройки комнаты",
+    )
+
+
+def privacy_menu() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=PRIVACY_ONLY_ME)],
+            [KeyboardButton(text=PRIVACY_BY_NICKNAME)],
+            [KeyboardButton(text=PRIVACY_PUBLIC)],
+            [KeyboardButton(text=BACK)],
+        ],
+        resize_keyboard=True,
+        input_field_placeholder="Приватность комнаты",
+    )
+
+
+def guest_room_menu() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=GUEST_LEAVE_NOTE)],
+            [KeyboardButton(text=GUEST_LEAVE_LIGHT)],
+            [KeyboardButton(text=BACK)],
+        ],
+        resize_keyboard=True,
+        input_field_placeholder="У двери комнаты",
     )
 
 

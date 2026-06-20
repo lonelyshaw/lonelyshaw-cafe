@@ -24,3 +24,16 @@ class TalkForm(StatesGroup):
 
 class MirrorForm(StatesGroup):
     waiting_text = State()
+
+
+class RoomNicknameForm(StatesGroup):
+    waiting_nickname = State()
+
+
+class FriendRoomForm(StatesGroup):
+    waiting_nickname = State()
+    viewing_room = State()
+
+
+class RoomNoteForm(StatesGroup):
+    waiting_text = State()
