@@ -195,6 +195,7 @@ async def back_to_menu(message: Message, state: FSMContext, db: Database) -> Non
 @router.message(StateFilter(None), F.text == MENU_ROOM)
 async def show_room(message: Message, db: Database) -> None:
     user_id = await get_user_id(message, db)
+    await db.unlock_first_pet_if_ready(user_id)
     stats = await db.room_stats(user_id)
     moments = await db.latest_moments(user_id, limit=1)
     last_moment = ""
@@ -465,28 +466,28 @@ async def evening(message: Message, db: Database) -> None:
 @router.message(StateFilter(None), F.text == MENU_PETS)
 async def pets(message: Message, db: Database) -> None:
     user_id = await get_user_id(message, db)
-    unlocked_now = await db.unlock_first_pet_if_ready(user_id)
+    await db.unlock_first_pet_if_ready(user_id)
     pets_rows = await db.latest_pets(user_id)
 
     if not pets_rows:
         await message.answer(
-            "<b>🦊 Питомцы</b>\n\n"
-            "Пока в комнате тихо.\n\n"
-            "Первый питомец появится, когда вы:\n"
-            "🌙 ответите на вопрос дня,\n"
-            "📖 добавите страницу в книгу,\n"
-            "🕯 сохраните момент.",
+            "🦊 Здесь пока тихо.\n\n"
+            "Продолжай заполнять свою комнату.\n"
+            "Первый питомец скоро появится.",
             reply_markup=main_menu(),
         )
         return
 
-    intro = "Дверца тихо приоткрылась.\n\n" if unlocked_now else ""
     items = []
     for row in pets_rows:
-        items.append(f"<b>{escape(str(row['name']))}</b>\n{escape(str(row['description']))}")
+        description = escape(str(row["description"])).replace(
+            "теми, кто",
+            "теми,\nкто",
+        )
+        items.append(f"<b>{escape(str(row['name']))}</b>\n\n{description}")
 
     await message.answer(
-        f"<b>🦊 Питомцы</b>\n\n{intro}" + "\n\n".join(items),
+        "\n\n".join(items),
         reply_markup=main_menu(),
     )
 
