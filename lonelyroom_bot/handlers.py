@@ -7,6 +7,7 @@ from aiogram.filters import Command, CommandStart, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
+from lonelyroom_bot.conversation import build_conversation_reply
 from lonelyroom_bot.database import Database
 from lonelyroom_bot.keyboards import (
     BACK,
@@ -88,6 +89,26 @@ def format_short_list(rows: list, field: str = "text") -> str:
     return "\n\n".join(items)
 
 
+async def answer_conversation(
+    message: Message,
+    db: Database,
+    user_id: int,
+    user_text: str,
+    *,
+    in_talk_mode: bool,
+) -> None:
+    history = await db.latest_conversation_messages(user_id)
+    reply = build_conversation_reply(user_text, history)
+
+    await db.add_conversation_message(user_id, "user", user_text)
+    await db.add_conversation_message(user_id, "bot", reply.text)
+
+    await message.answer(
+        reply.text,
+        reply_markup=back_menu() if in_talk_mode else main_menu(),
+    )
+
+
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext, db: Database) -> None:
     await state.clear()
@@ -124,7 +145,8 @@ async def show_room(message: Message, db: Database) -> None:
         f"Страниц: {stats['book']}\n"
         f"Моментов: {stats['moments']}\n"
         f"Писем: {stats['letters']}\n"
-        f"Ответов дня: {stats['answers']}"
+        f"Ответов дня: {stats['answers']}\n"
+        f"Сообщений в разговоре: {stats['conversation']}"
         f"{last_moment}\n\n"
         "каждый человек — это целая комната."
     )
@@ -145,7 +167,7 @@ async def add_book_entry_start(message: Message, state: FSMContext, db: Database
     await get_user_id(message, db)
     await state.set_state(BookForm.waiting_text)
     await message.answer(
-        "Напишите страницу.\nОдной-двух фраз достаточно.",
+        "Напишите страницу.\nЧто о себе хочется запомнить?",
         reply_markup=back_menu(),
     )
 
@@ -222,7 +244,7 @@ async def moment_start(message: Message, state: FSMContext, db: Database) -> Non
     await get_user_id(message, db)
     await state.set_state(MomentForm.waiting_text)
     await message.answer(
-        "Какой момент сохранить?\nМожно совсем коротко.",
+        "Какой момент сохранить?\nЧто было живым сегодня?",
         reply_markup=back_menu(),
     )
 
@@ -244,7 +266,7 @@ async def moment_finish(message: Message, state: FSMContext, db: Database) -> No
 async def letters(message: Message, db: Database) -> None:
     await get_user_id(message, db)
     await message.answer(
-        "<b>💌 Письма</b>\n\nМожно написать себе несколько строк.",
+        "<b>💌 Письма</b>\n\nМожно оставить себе пару честных строк.",
         reply_markup=letters_menu(),
     )
 
@@ -265,7 +287,7 @@ async def letter_body_start(message: Message, state: FSMContext) -> None:
 
     await state.update_data(title=trim_text(text, 80))
     await state.set_state(LetterForm.waiting_body)
-    await message.answer("Теперь само письмо.\nНесколько строк достаточно.", reply_markup=back_menu())
+    await message.answer("Теперь само письмо.\nКак бы вы сказали это себе тихо?", reply_markup=back_menu())
 
 
 @router.message(LetterForm.waiting_body, F.text)
@@ -324,7 +346,7 @@ async def talk_start(message: Message, state: FSMContext, db: Database) -> None:
     await get_user_id(message, db)
     await state.set_state(TalkForm.waiting_text)
     await message.answer(
-        "Напишите одну строку.\nЧто сейчас внутри?",
+        "Я здесь.\nЧто сейчас внутри?",
         reply_markup=back_menu(),
     )
 
@@ -336,18 +358,20 @@ async def talk_finish(message: Message, state: FSMContext, db: Database) -> None
         await message.answer("Можно одной строкой.", reply_markup=back_menu())
         return
 
-    await get_user_id(message, db)
-    await state.clear()
-    await message.answer(
-        "Я услышал.\n\nСейчас можно сделать вдох.\nПотом выдох.\nВы уже здесь.",
-        reply_markup=main_menu(),
-    )
+    user_id = await get_user_id(message, db)
+    await answer_conversation(message, db, user_id, text, in_talk_mode=True)
 
 
 @router.message(StateFilter(None))
 async def fallback(message: Message, db: Database) -> None:
-    await get_user_id(message, db)
-    await message.answer("Я здесь.\nВыберите пункт в меню.", reply_markup=main_menu())
+    text = clean_text(message)
+    user_id = await get_user_id(message, db)
+
+    if text is None:
+        await message.answer("Лучше текстом.\nЯ так смогу понять точнее.", reply_markup=main_menu())
+        return
+
+    await answer_conversation(message, db, user_id, text, in_talk_mode=False)
 
 
 @router.message()

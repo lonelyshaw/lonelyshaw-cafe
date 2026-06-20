@@ -53,6 +53,15 @@ CREATE TABLE IF NOT EXISTS letters (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS conversation_messages (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    role TEXT NOT NULL CHECK (role IN ('user', 'bot')),
+    text TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_book_entries_user_created
     ON book_entries (user_id, created_at DESC);
 
@@ -64,6 +73,9 @@ CREATE INDEX IF NOT EXISTS idx_moments_user_created
 
 CREATE INDEX IF NOT EXISTS idx_letters_user_created
     ON letters (user_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_conversation_messages_user_created
+    ON conversation_messages (user_id, created_at DESC, id DESC);
 """
 
 
@@ -128,6 +140,7 @@ class Database:
             "moments": "moments",
             "letters": "letters",
             "answers": "daily_answers",
+            "conversation": "conversation_messages",
         }
         stats: dict[str, int] = {}
 
@@ -214,6 +227,33 @@ class Database:
             user_id,
             limit,
         )
+
+    async def add_conversation_message(self, user_id: int, role: str, text: str) -> None:
+        if role not in {"user", "bot"}:
+            raise ValueError("role должен быть 'user' или 'bot'")
+
+        await self._execute_write(
+            "INSERT INTO conversation_messages (user_id, role, text) VALUES (?, ?, ?)",
+            (user_id, role, text),
+        )
+
+    async def latest_conversation_messages(
+        self,
+        user_id: int,
+        limit: int = 8,
+    ) -> list[aiosqlite.Row]:
+        rows = await self._fetch_latest(
+            """
+            SELECT role, text, created_at
+            FROM conversation_messages
+            WHERE user_id = ?
+            ORDER BY created_at DESC, id DESC
+            LIMIT ?
+            """,
+            user_id,
+            limit,
+        )
+        return list(reversed(rows))
 
     async def _execute_write(self, query: str, params: tuple[Any, ...]) -> None:
         db = self._db()
