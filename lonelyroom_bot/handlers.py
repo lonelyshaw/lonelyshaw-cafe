@@ -13,19 +13,26 @@ from lonelyroom_bot.keyboards import (
     BACK,
     BOOK_ADD,
     BOOK_READ,
+    MEDIA_BOOKS,
+    MEDIA_MOVIES,
+    MEDIA_MUSIC,
     LETTER_READ,
     LETTER_WRITE,
     MENU_BOOK,
     MENU_DAILY,
     MENU_EVENING,
     MENU_LETTERS,
+    MENU_MEDIA,
     MENU_MOMENT,
     MENU_ROOM,
     MENU_TALK,
+    OLD_MENU_LETTERS,
+    OLD_MENU_MOMENT,
     back_menu,
     book_menu,
     letters_menu,
     main_menu,
+    media_menu,
 )
 from lonelyroom_bot.states import BookForm, DailyQuestionForm, LetterForm, MomentForm, TalkForm
 from lonelyroom_bot.texts import (
@@ -46,12 +53,18 @@ NAVIGATION_TEXTS = {
     MENU_DAILY,
     MENU_MOMENT,
     MENU_LETTERS,
+    MENU_MEDIA,
     MENU_EVENING,
     MENU_TALK,
+    OLD_MENU_MOMENT,
+    OLD_MENU_LETTERS,
     BOOK_ADD,
     BOOK_READ,
     LETTER_WRITE,
     LETTER_READ,
+    MEDIA_BOOKS,
+    MEDIA_MOVIES,
+    MEDIA_MUSIC,
 }
 
 
@@ -142,13 +155,13 @@ async def show_room(message: Message, db: Database) -> None:
 
     text = (
         "<b>🏡 Моя комната</b>\n\n"
-        f"Страниц: {stats['book']}\n"
-        f"Моментов: {stats['moments']}\n"
-        f"Писем: {stats['letters']}\n"
-        f"Ответов дня: {stats['answers']}\n"
-        f"Сообщений в разговоре: {stats['conversation']}"
+        f"📖 Страниц: {stats['book']}\n"
+        f"🕯 Моментов: {stats['moments']}\n"
+        f"💌 Писем: {stats['letters']}\n"
+        f"🌙 Ответов дня: {stats['answers']}"
         f"{last_moment}\n\n"
-        "каждый человек — это целая комната."
+        "Комната становится теплее от всего, что вы оставляете здесь.\n"
+        "Даже маленькая запись может однажды стать окном в этот вечер."
     )
     await message.answer(text, reply_markup=main_menu())
 
@@ -193,7 +206,7 @@ async def add_book_entry_finish(message: Message, state: FSMContext, db: Databas
     await db.add_book_entry(user_id, text)
     await state.clear()
     await message.answer(
-        "Страница сохранена.\nОна теперь в книге.",
+        "📖 Страница сохранена.\n\nОна легла в книгу, как тихая закладка.",
         reply_markup=book_menu(),
     )
 
@@ -236,15 +249,18 @@ async def daily_question_finish(message: Message, state: FSMContext, db: Databas
     user_id = await get_user_id(message, db)
     await db.save_daily_answer(user_id, answer_date, question, text)
     await state.clear()
-    await message.answer("Ответ сохранен.\nПусть он побудет здесь.", reply_markup=main_menu())
+    await message.answer("🌙 Ответ сохранён.\n\nПусть немного побудет здесь, в тишине.", reply_markup=main_menu())
 
 
+@router.message(StateFilter(None), F.text == OLD_MENU_MOMENT)
 @router.message(StateFilter(None), F.text == MENU_MOMENT)
 async def moment_start(message: Message, state: FSMContext, db: Database) -> None:
     await get_user_id(message, db)
     await state.set_state(MomentForm.waiting_text)
     await message.answer(
-        "Какой момент сохранить?\nЧто было живым сегодня?",
+        "<b>🕯 Моменты</b>\n\n"
+        "Какое маленькое воспоминание оставить здесь?\n"
+        "Можно одной строкой, как заметку на полях книги.",
         reply_markup=back_menu(),
     )
 
@@ -253,20 +269,38 @@ async def moment_start(message: Message, state: FSMContext, db: Database) -> Non
 async def moment_finish(message: Message, state: FSMContext, db: Database) -> None:
     text = clean_text(message)
     if text is None or is_navigation_text(text):
-        await message.answer("Напишите сам момент.", reply_markup=back_menu())
+        await message.answer("Оставьте сам момент.\nКак он звучит в памяти?", reply_markup=back_menu())
         return
 
     user_id = await get_user_id(message, db)
     await db.add_moment(user_id, text)
     await state.clear()
-    await message.answer("Момент сохранен.\nТихо и бережно.", reply_markup=main_menu())
+    await message.answer(
+        "🕯 Момент сохранён.\n\n"
+        "Когда-нибудь ты вернёшься сюда и вспомнишь этот день.",
+        reply_markup=main_menu(),
+    )
 
 
 @router.message(StateFilter(None), F.text == MENU_LETTERS)
+async def letter_self_start(message: Message, state: FSMContext, db: Database) -> None:
+    await get_user_id(message, db)
+    await state.update_data(title="Письмо себе", letter_mode="simple")
+    await state.set_state(LetterForm.waiting_body)
+    await message.answer(
+        "<b>💌 Письмо себе</b>\n\n"
+        "Напишите то, что хочется сохранить для себя будущего.\n"
+        "Пусть это будет тихо и честно.",
+        reply_markup=back_menu(),
+    )
+
+
+@router.message(StateFilter(None), F.text == OLD_MENU_LETTERS)
 async def letters(message: Message, db: Database) -> None:
     await get_user_id(message, db)
     await message.answer(
-        "<b>💌 Письма</b>\n\nМожно оставить себе пару честных строк.",
+        "<b>💌 Письма</b>\n\n"
+        "Здесь хранятся слова, которые можно открыть позже, как конверт из прошлого.",
         reply_markup=letters_menu(),
     )
 
@@ -285,7 +319,7 @@ async def letter_body_start(message: Message, state: FSMContext) -> None:
         await message.answer("Напишите короткую тему.", reply_markup=back_menu())
         return
 
-    await state.update_data(title=trim_text(text, 80))
+    await state.update_data(title=trim_text(text, 80), letter_mode="detailed")
     await state.set_state(LetterForm.waiting_body)
     await message.answer("Теперь само письмо.\nКак бы вы сказали это себе тихо?", reply_markup=back_menu())
 
@@ -294,15 +328,20 @@ async def letter_body_start(message: Message, state: FSMContext) -> None:
 async def letter_finish(message: Message, state: FSMContext, db: Database) -> None:
     text = clean_text(message)
     if text is None or is_navigation_text(text):
-        await message.answer("Напишите текст письма.", reply_markup=back_menu())
+        await message.answer("Напишите само письмо.\nПусть это будет несколько ваших строк.", reply_markup=back_menu())
         return
 
     data = await state.get_data()
-    title = str(data["title"])
+    title = str(data.get("title", "Письмо себе"))
+    letter_mode = str(data.get("letter_mode", "detailed"))
     user_id = await get_user_id(message, db)
     await db.add_letter(user_id, title, text)
     await state.clear()
-    await message.answer("Письмо сохранено.\nОно будет ждать вас.", reply_markup=letters_menu())
+    await message.answer(
+        "💌 Письмо сохранено.\n\n"
+        "Иногда полезно услышать собственный голос спустя время.",
+        reply_markup=main_menu() if letter_mode == "simple" else letters_menu(),
+    )
 
 
 @router.message(StateFilter(None), F.text == LETTER_READ)
@@ -339,6 +378,47 @@ async def evening(message: Message, db: Database) -> None:
         "Без спешки."
     )
     await message.answer(text, reply_markup=main_menu())
+
+
+@router.message(StateFilter(None), F.text == MENU_MEDIA)
+async def media(message: Message, db: Database) -> None:
+    await get_user_id(message, db)
+    await message.answer(
+        "<b>🎬 Медиа</b>\n\n"
+        "Полка для вечеров, когда хочется не шума, а настроения.\n"
+        "Выберите, что поставить рядом с комнатой.",
+        reply_markup=media_menu(),
+    )
+
+
+@router.message(StateFilter(None), F.text == MEDIA_BOOKS)
+async def media_books(message: Message, db: Database) -> None:
+    await get_user_id(message, db)
+    await message.answer(
+        "<b>📚 Книги</b>\n\n"
+        "Скоро здесь появится тихая полка с книгами для дождливых вечеров.",
+        reply_markup=media_menu(),
+    )
+
+
+@router.message(StateFilter(None), F.text == MEDIA_MOVIES)
+async def media_movies(message: Message, db: Database) -> None:
+    await get_user_id(message, db)
+    await message.answer(
+        "<b>🎬 Фильмы</b>\n\n"
+        "Скоро здесь будет маленький кинозал: плед, приглушённый свет и пауза от дня.",
+        reply_markup=media_menu(),
+    )
+
+
+@router.message(StateFilter(None), F.text == MEDIA_MUSIC)
+async def media_music(message: Message, db: Database) -> None:
+    await get_user_id(message, db)
+    await message.answer(
+        "<b>🎵 Музыка</b>\n\n"
+        "Скоро здесь будут плейлисты, которые звучат как вечернее окно после дождя.",
+        reply_markup=media_menu(),
+    )
 
 
 @router.message(StateFilter(None), F.text == MENU_TALK)
