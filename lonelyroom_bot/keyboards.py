@@ -4,8 +4,10 @@ from aiogram.types import KeyboardButton, ReplyKeyboardMarkup
 MENU_ROOM = "🏡 Моя комната"
 MENU_BOOK = "📖 Книга обо мне"
 MENU_DAILY = "🌙 Вопрос дня"
+MENU_MOOD = "🌧 Настроение"
 MENU_MOMENT = "🕯 Моменты"
 MENU_LETTERS = "💌 Письмо себе"
+MENU_PETS = "🦊 Питомцы"
 MENU_MEDIA = "🎬 Медиа"
 
 OLD_MENU_MOMENT = "✨ Сохранить момент"
@@ -25,13 +27,30 @@ MEDIA_BOOKS = "📚 Книги"
 MEDIA_MOVIES = "🎬 Фильмы"
 MEDIA_MUSIC = "🎵 Музыка"
 
+MOOD_CALM = "спокойно"
+MOOD_ANXIOUS = "тревожно"
+MOOD_SAD = "грустно"
+MOOD_COZY = "уютно"
+MOOD_TIRED = "устало"
+MOOD_HAPPY = "радостно"
+
+MOODS = (
+    MOOD_CALM,
+    MOOD_ANXIOUS,
+    MOOD_SAD,
+    MOOD_COZY,
+    MOOD_TIRED,
+    MOOD_HAPPY,
+)
+
 
 def main_menu() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text=MENU_ROOM), KeyboardButton(text=MENU_BOOK)],
-            [KeyboardButton(text=MENU_DAILY), KeyboardButton(text=MENU_MOMENT)],
-            [KeyboardButton(text=MENU_LETTERS), KeyboardButton(text=MENU_MEDIA)],
+            [KeyboardButton(text=MENU_DAILY), KeyboardButton(text=MENU_MOOD)],
+            [KeyboardButton(text=MENU_MOMENT), KeyboardButton(text=MENU_LETTERS)],
+            [KeyboardButton(text=MENU_PETS), KeyboardButton(text=MENU_MEDIA)],
         ],
         is_persistent=True,
         resize_keyboard=True,
@@ -70,6 +89,19 @@ def media_menu() -> ReplyKeyboardMarkup:
         ],
         resize_keyboard=True,
         input_field_placeholder="Медиа для вечера",
+    )
+
+
+def mood_menu() -> ReplyKeyboardMarkup:
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=MOOD_CALM), KeyboardButton(text=MOOD_ANXIOUS)],
+            [KeyboardButton(text=MOOD_SAD), KeyboardButton(text=MOOD_COZY)],
+            [KeyboardButton(text=MOOD_TIRED), KeyboardButton(text=MOOD_HAPPY)],
+            [KeyboardButton(text=BACK)],
+        ],
+        resize_keyboard=True,
+        input_field_placeholder="Выберите настроение дня",
     )
 
 

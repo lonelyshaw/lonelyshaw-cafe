@@ -62,6 +62,27 @@ CREATE TABLE IF NOT EXISTS conversation_messages (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS moods (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    mood_date TEXT NOT NULL,
+    mood TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE (user_id, mood_date)
+);
+
+CREATE TABLE IF NOT EXISTS user_pets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    pet_code TEXT NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    unlocked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE (user_id, pet_code)
+);
+
 CREATE INDEX IF NOT EXISTS idx_book_entries_user_created
     ON book_entries (user_id, created_at DESC);
 
@@ -76,6 +97,12 @@ CREATE INDEX IF NOT EXISTS idx_letters_user_created
 
 CREATE INDEX IF NOT EXISTS idx_conversation_messages_user_created
     ON conversation_messages (user_id, created_at DESC, id DESC);
+
+CREATE INDEX IF NOT EXISTS idx_moods_user_date
+    ON moods (user_id, mood_date DESC);
+
+CREATE INDEX IF NOT EXISTS idx_user_pets_user_unlocked
+    ON user_pets (user_id, unlocked_at DESC);
 """
 
 
@@ -141,6 +168,8 @@ class Database:
             "letters": "letters",
             "answers": "daily_answers",
             "conversation": "conversation_messages",
+            "moods": "moods",
+            "pets": "user_pets",
         }
         stats: dict[str, int] = {}
 
@@ -254,6 +283,69 @@ class Database:
             limit,
         )
         return list(reversed(rows))
+
+    async def save_mood(self, user_id: int, mood_date: str, mood: str) -> None:
+        await self._execute_write(
+            """
+            INSERT INTO moods (user_id, mood_date, mood)
+            VALUES (?, ?, ?)
+            ON CONFLICT(user_id, mood_date) DO UPDATE SET
+                mood = excluded.mood,
+                created_at = CURRENT_TIMESTAMP
+            """,
+            (user_id, mood_date, mood),
+        )
+
+    async def latest_mood(self, user_id: int) -> aiosqlite.Row | None:
+        db = self._db()
+        async with db.execute(
+            """
+            SELECT mood, mood_date, created_at
+            FROM moods
+            WHERE user_id = ?
+            ORDER BY mood_date DESC, id DESC
+            LIMIT 1
+            """,
+            (user_id,),
+        ) as cursor:
+            return await cursor.fetchone()
+
+    async def latest_pets(self, user_id: int) -> list[aiosqlite.Row]:
+        return await self._fetch_latest(
+            """
+            SELECT pet_code, name, description, unlocked_at
+            FROM user_pets
+            WHERE user_id = ?
+            ORDER BY unlocked_at DESC, id DESC
+            LIMIT ?
+            """,
+            user_id,
+            10,
+        )
+
+    async def can_unlock_first_pet(self, user_id: int) -> bool:
+        stats = await self.room_stats(user_id)
+        return stats["answers"] >= 1 and stats["book"] >= 1 and stats["moments"] >= 1
+
+    async def unlock_first_pet_if_ready(self, user_id: int) -> bool:
+        if not await self.can_unlock_first_pet(user_id):
+            return False
+
+        db = self._db()
+        cursor = await db.execute(
+            """
+            INSERT OR IGNORE INTO user_pets (user_id, pet_code, name, description)
+            VALUES (?, ?, ?, ?)
+            """,
+            (
+                user_id,
+                "forest_fox",
+                "🦊 Лесной лисёнок",
+                "Он появляется рядом с теми, кто учится быть мягче к себе.",
+            ),
+        )
+        await db.commit()
+        return cursor.rowcount > 0
 
     async def _execute_write(self, query: str, params: tuple[Any, ...]) -> None:
         db = self._db()

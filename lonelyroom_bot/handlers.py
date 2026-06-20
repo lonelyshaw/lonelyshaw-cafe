@@ -16,6 +16,7 @@ from lonelyroom_bot.keyboards import (
     MEDIA_BOOKS,
     MEDIA_MOVIES,
     MEDIA_MUSIC,
+    MOODS,
     LETTER_READ,
     LETTER_WRITE,
     MENU_BOOK,
@@ -24,6 +25,8 @@ from lonelyroom_bot.keyboards import (
     MENU_LETTERS,
     MENU_MEDIA,
     MENU_MOMENT,
+    MENU_MOOD,
+    MENU_PETS,
     MENU_ROOM,
     MENU_TALK,
     OLD_MENU_LETTERS,
@@ -33,12 +36,16 @@ from lonelyroom_bot.keyboards import (
     letters_menu,
     main_menu,
     media_menu,
+    mood_menu,
 )
 from lonelyroom_bot.states import BookForm, DailyQuestionForm, LetterForm, MomentForm, TalkForm
 from lonelyroom_bot.texts import (
     EMPTY_TEXT,
     EVENING_RECIPES,
+    FIRST_PET_DESCRIPTION,
+    FIRST_PET_NAME,
     MENU_TEXT,
+    SMALL_DISCOVERIES,
     WELCOME_TEXT,
     question_for_day,
     trim_text,
@@ -51,8 +58,10 @@ NAVIGATION_TEXTS = {
     MENU_ROOM,
     MENU_BOOK,
     MENU_DAILY,
+    MENU_MOOD,
     MENU_MOMENT,
     MENU_LETTERS,
+    MENU_PETS,
     MENU_MEDIA,
     MENU_EVENING,
     MENU_TALK,
@@ -65,6 +74,7 @@ NAVIGATION_TEXTS = {
     MEDIA_BOOKS,
     MEDIA_MOVIES,
     MEDIA_MUSIC,
+    *MOODS,
 }
 
 
@@ -122,6 +132,45 @@ async def answer_conversation(
     )
 
 
+def important_action_total(stats: dict[str, int]) -> int:
+    return (
+        stats["book"]
+        + stats["moments"]
+        + stats["letters"]
+        + stats["answers"]
+        + stats["moods"]
+    )
+
+
+async def maybe_unlock_pet(message: Message, db: Database, user_id: int) -> bool:
+    if not await db.unlock_first_pet_if_ready(user_id):
+        return False
+
+    await message.answer(
+        "Кажется, здесь кто-то тихо устроился рядом.\n\n"
+        f"<b>{FIRST_PET_NAME}</b>\n"
+        f"{FIRST_PET_DESCRIPTION}",
+        reply_markup=main_menu(),
+    )
+    return True
+
+
+async def maybe_send_small_discovery(message: Message, db: Database, user_id: int) -> None:
+    stats = await db.room_stats(user_id)
+    total = important_action_total(stats)
+
+    if total > 0 and total % 3 == 0:
+        discovery = SMALL_DISCOVERIES[(total // 3 - 1) % len(SMALL_DISCOVERIES)]
+        await message.answer(discovery, reply_markup=main_menu())
+
+
+async def after_important_action(message: Message, db: Database, user_id: int) -> None:
+    if await maybe_unlock_pet(message, db, user_id):
+        return
+
+    await maybe_send_small_discovery(message, db, user_id)
+
+
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext, db: Database) -> None:
     await state.clear()
@@ -158,7 +207,9 @@ async def show_room(message: Message, db: Database) -> None:
         f"📖 Страниц: {stats['book']}\n"
         f"🕯 Моментов: {stats['moments']}\n"
         f"💌 Писем: {stats['letters']}\n"
-        f"🌙 Ответов дня: {stats['answers']}"
+        f"🌙 Ответов дня: {stats['answers']}\n"
+        f"🌧 Настроений: {stats['moods']}\n"
+        f"🦊 Питомцев: {stats['pets']}"
         f"{last_moment}\n\n"
         "Комната становится теплее от всего, что вы оставляете здесь.\n"
         "Даже маленькая запись может однажды стать окном в этот вечер."
@@ -209,6 +260,7 @@ async def add_book_entry_finish(message: Message, state: FSMContext, db: Databas
         "📖 Страница сохранена.\n\nОна легла в книгу, как тихая закладка.",
         reply_markup=book_menu(),
     )
+    await after_important_action(message, db, user_id)
 
 
 @router.message(StateFilter(None), F.text == MENU_DAILY)
@@ -250,6 +302,34 @@ async def daily_question_finish(message: Message, state: FSMContext, db: Databas
     await db.save_daily_answer(user_id, answer_date, question, text)
     await state.clear()
     await message.answer("🌙 Ответ сохранён.\n\nПусть немного побудет здесь, в тишине.", reply_markup=main_menu())
+    await after_important_action(message, db, user_id)
+
+
+@router.message(StateFilter(None), F.text == MENU_MOOD)
+async def mood_start(message: Message, db: Database) -> None:
+    await get_user_id(message, db)
+    await message.answer(
+        "<b>🌧 Настроение дня</b>\n\n"
+        "Какой сегодня воздух внутри комнаты?",
+        reply_markup=mood_menu(),
+    )
+
+
+@router.message(StateFilter(None), F.text.in_(MOODS))
+async def mood_save(message: Message, db: Database) -> None:
+    text = clean_text(message)
+    if text is None:
+        await message.answer("Выберите настроение одним словом.", reply_markup=mood_menu())
+        return
+
+    user_id = await get_user_id(message, db)
+    await db.save_mood(user_id, date.today().isoformat(), text)
+    await message.answer(
+        f"🌧 Настроение сохранено: {escape(text)}.\n\n"
+        "Пусть день останется таким, каким он был на самом деле.",
+        reply_markup=main_menu(),
+    )
+    await after_important_action(message, db, user_id)
 
 
 @router.message(StateFilter(None), F.text == OLD_MENU_MOMENT)
@@ -280,6 +360,7 @@ async def moment_finish(message: Message, state: FSMContext, db: Database) -> No
         "Когда-нибудь ты вернёшься сюда и вспомнишь этот день.",
         reply_markup=main_menu(),
     )
+    await after_important_action(message, db, user_id)
 
 
 @router.message(StateFilter(None), F.text == MENU_LETTERS)
@@ -342,6 +423,7 @@ async def letter_finish(message: Message, state: FSMContext, db: Database) -> No
         "Иногда полезно услышать собственный голос спустя время.",
         reply_markup=main_menu() if letter_mode == "simple" else letters_menu(),
     )
+    await after_important_action(message, db, user_id)
 
 
 @router.message(StateFilter(None), F.text == LETTER_READ)
@@ -378,6 +460,35 @@ async def evening(message: Message, db: Database) -> None:
         "Без спешки."
     )
     await message.answer(text, reply_markup=main_menu())
+
+
+@router.message(StateFilter(None), F.text == MENU_PETS)
+async def pets(message: Message, db: Database) -> None:
+    user_id = await get_user_id(message, db)
+    unlocked_now = await db.unlock_first_pet_if_ready(user_id)
+    pets_rows = await db.latest_pets(user_id)
+
+    if not pets_rows:
+        await message.answer(
+            "<b>🦊 Питомцы</b>\n\n"
+            "Пока в комнате тихо.\n\n"
+            "Первый питомец появится, когда вы:\n"
+            "🌙 ответите на вопрос дня,\n"
+            "📖 добавите страницу в книгу,\n"
+            "🕯 сохраните момент.",
+            reply_markup=main_menu(),
+        )
+        return
+
+    intro = "Дверца тихо приоткрылась.\n\n" if unlocked_now else ""
+    items = []
+    for row in pets_rows:
+        items.append(f"<b>{escape(str(row['name']))}</b>\n{escape(str(row['description']))}")
+
+    await message.answer(
+        f"<b>🦊 Питомцы</b>\n\n{intro}" + "\n\n".join(items),
+        reply_markup=main_menu(),
+    )
 
 
 @router.message(StateFilter(None), F.text == MENU_MEDIA)
