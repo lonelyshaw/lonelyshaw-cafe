@@ -83,6 +83,14 @@ CREATE TABLE IF NOT EXISTS user_pets (
     UNIQUE (user_id, pet_code)
 );
 
+CREATE TABLE IF NOT EXISTS mirror_entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_book_entries_user_created
     ON book_entries (user_id, created_at DESC);
 
@@ -103,6 +111,9 @@ CREATE INDEX IF NOT EXISTS idx_moods_user_date
 
 CREATE INDEX IF NOT EXISTS idx_user_pets_user_unlocked
     ON user_pets (user_id, unlocked_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_mirror_entries_user_created
+    ON mirror_entries (user_id, created_at DESC, id DESC);
 """
 
 
@@ -170,6 +181,7 @@ class Database:
             "conversation": "conversation_messages",
             "moods": "moods",
             "pets": "user_pets",
+            "mirror": "mirror_entries",
         }
         stats: dict[str, int] = {}
 
@@ -229,6 +241,19 @@ class Database:
                 created_at = CURRENT_TIMESTAMP
             """,
             (user_id, answer_date, question, answer),
+        )
+
+    async def latest_daily_answers(self, user_id: int, limit: int = 5) -> list[aiosqlite.Row]:
+        return await self._fetch_latest(
+            """
+            SELECT question, answer, answer_date, created_at
+            FROM daily_answers
+            WHERE user_id = ?
+            ORDER BY answer_date DESC, id DESC
+            LIMIT ?
+            """,
+            user_id,
+            limit,
         )
 
     async def add_moment(self, user_id: int, text: str) -> None:
@@ -321,6 +346,25 @@ class Database:
             """,
             user_id,
             10,
+        )
+
+    async def add_mirror_entry(self, user_id: int, text: str) -> None:
+        await self._execute_write(
+            "INSERT INTO mirror_entries (user_id, text) VALUES (?, ?)",
+            (user_id, text),
+        )
+
+    async def latest_mirror_entries(self, user_id: int, limit: int = 5) -> list[aiosqlite.Row]:
+        return await self._fetch_latest(
+            """
+            SELECT text, created_at
+            FROM mirror_entries
+            WHERE user_id = ?
+            ORDER BY created_at DESC, id DESC
+            LIMIT ?
+            """,
+            user_id,
+            limit,
         )
 
     async def can_unlock_first_pet(self, user_id: int) -> bool:

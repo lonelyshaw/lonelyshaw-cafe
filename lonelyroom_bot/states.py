@@ -20,3 +20,7 @@ class LetterForm(StatesGroup):
 
 class TalkForm(StatesGroup):
     waiting_text = State()
+
+
+class MirrorForm(StatesGroup):
+    waiting_text = State()

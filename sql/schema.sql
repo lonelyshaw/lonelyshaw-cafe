@@ -76,6 +76,14 @@ CREATE TABLE IF NOT EXISTS user_pets (
     UNIQUE (user_id, pet_code)
 );
 
+CREATE TABLE IF NOT EXISTS mirror_entries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    text TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 CREATE INDEX IF NOT EXISTS idx_book_entries_user_created
     ON book_entries (user_id, created_at DESC);
 
@@ -96,3 +104,6 @@ CREATE INDEX IF NOT EXISTS idx_moods_user_date
 
 CREATE INDEX IF NOT EXISTS idx_user_pets_user_unlocked
     ON user_pets (user_id, unlocked_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_mirror_entries_user_created
+    ON mirror_entries (user_id, created_at DESC, id DESC);

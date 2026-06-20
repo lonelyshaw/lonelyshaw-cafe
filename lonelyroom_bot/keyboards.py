@@ -8,6 +8,9 @@ MENU_MOOD = "🌧 Настроение"
 MENU_MOMENT = "🕯 Моменты"
 MENU_LETTERS = "💌 Письмо себе"
 MENU_PETS = "🦊 Питомцы"
+MENU_MIRROR = "🪞 Зеркало"
+MENU_ARCHIVE = "🧳 Архив"
+MENU_SETTINGS = "⚙️ Настройки"
 MENU_MEDIA = "🎬 Медиа"
 
 OLD_MENU_MOMENT = "✨ Сохранить момент"
@@ -51,6 +54,8 @@ def main_menu() -> ReplyKeyboardMarkup:
             [KeyboardButton(text=MENU_DAILY), KeyboardButton(text=MENU_MOOD)],
             [KeyboardButton(text=MENU_MOMENT), KeyboardButton(text=MENU_LETTERS)],
             [KeyboardButton(text=MENU_PETS), KeyboardButton(text=MENU_MEDIA)],
+            [KeyboardButton(text=MENU_MIRROR), KeyboardButton(text=MENU_ARCHIVE)],
+            [KeyboardButton(text=MENU_SETTINGS)],
         ],
         is_persistent=True,
         resize_keyboard=True,

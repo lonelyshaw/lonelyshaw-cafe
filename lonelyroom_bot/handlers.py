@@ -23,11 +23,14 @@ from lonelyroom_bot.keyboards import (
     MENU_DAILY,
     MENU_EVENING,
     MENU_LETTERS,
+    MENU_ARCHIVE,
     MENU_MEDIA,
+    MENU_MIRROR,
     MENU_MOMENT,
     MENU_MOOD,
     MENU_PETS,
     MENU_ROOM,
+    MENU_SETTINGS,
     MENU_TALK,
     OLD_MENU_LETTERS,
     OLD_MENU_MOMENT,
@@ -38,7 +41,7 @@ from lonelyroom_bot.keyboards import (
     media_menu,
     mood_menu,
 )
-from lonelyroom_bot.states import BookForm, DailyQuestionForm, LetterForm, MomentForm, TalkForm
+from lonelyroom_bot.states import BookForm, DailyQuestionForm, LetterForm, MirrorForm, MomentForm, TalkForm
 from lonelyroom_bot.texts import (
     EMPTY_TEXT,
     EVENING_RECIPES,
@@ -61,8 +64,11 @@ NAVIGATION_TEXTS = {
     MENU_MOOD,
     MENU_MOMENT,
     MENU_LETTERS,
+    MENU_ARCHIVE,
     MENU_PETS,
     MENU_MEDIA,
+    MENU_MIRROR,
+    MENU_SETTINGS,
     MENU_EVENING,
     MENU_TALK,
     OLD_MENU_MOMENT,
@@ -139,7 +145,42 @@ def important_action_total(stats: dict[str, int]) -> int:
         + stats["letters"]
         + stats["answers"]
         + stats["moods"]
+        + stats["mirror"]
     )
+
+
+def room_atmosphere(stats: dict[str, int]) -> str:
+    total = important_action_total(stats)
+    if total <= 2:
+        return "пустая тихая комната"
+    if total <= 5:
+        return "в комнате горит маленькая лампа"
+    if total < 10:
+        return "на полке появляются книги и письма"
+    return "это место уже похоже на дом"
+
+
+def archive_block(title: str, rows: list, field: str = "text") -> str:
+    if not rows:
+        return f"<b>{title}</b>\nздесь пока тихо."
+
+    items = []
+    for index, row in enumerate(rows, start=1):
+        value = escape(trim_text(str(row[field]), 110))
+        items.append(f"{index}. {value}")
+    return f"<b>{title}</b>\n" + "\n".join(items)
+
+
+def daily_answers_block(rows: list) -> str:
+    if not rows:
+        return "<b>🌙 Ответы дня</b>\nздесь пока тихо."
+
+    items = []
+    for index, row in enumerate(rows, start=1):
+        question = escape(trim_text(str(row["question"]), 70))
+        answer = escape(trim_text(str(row["answer"]), 100))
+        items.append(f"{index}. {question}\n{answer}")
+    return "<b>🌙 Ответы дня</b>\n" + "\n\n".join(items)
 
 
 async def maybe_unlock_pet(message: Message, db: Database, user_id: int) -> bool:
@@ -205,6 +246,7 @@ async def show_room(message: Message, db: Database) -> None:
 
     text = (
         "<b>🏡 Моя комната</b>\n\n"
+        f"Сейчас это: {escape(room_atmosphere(stats))}.\n\n"
         f"📖 Страниц: {stats['book']}\n"
         f"🕯 Моментов: {stats['moments']}\n"
         f"💌 Писем: {stats['letters']}\n"
@@ -214,6 +256,70 @@ async def show_room(message: Message, db: Database) -> None:
         f"{last_moment}\n\n"
         "Комната становится теплее от всего, что вы оставляете здесь.\n"
         "Даже маленькая запись может однажды стать окном в этот вечер."
+    )
+    await message.answer(text, reply_markup=main_menu())
+
+
+@router.message(StateFilter(None), F.text == MENU_MIRROR)
+async def mirror_start(message: Message, state: FSMContext, db: Database) -> None:
+    await get_user_id(message, db)
+    await state.set_state(MirrorForm.waiting_text)
+    await message.answer(
+        "<b>🪞 Зеркало</b>\n\n"
+        "Что ты сейчас чувствуешь на самом деле?",
+        reply_markup=back_menu(),
+    )
+
+
+@router.message(MirrorForm.waiting_text, F.text)
+async def mirror_finish(message: Message, state: FSMContext, db: Database) -> None:
+    text = clean_text(message)
+    if text is None or is_navigation_text(text):
+        await message.answer("Можно одной честной строкой.", reply_markup=back_menu())
+        return
+
+    user_id = await get_user_id(message, db)
+    await db.add_mirror_entry(user_id, text)
+    await state.clear()
+    await message.answer(
+        "🪞 Сохранено.\n\n"
+        "Иногда зеркало просто держит свет.",
+        reply_markup=main_menu(),
+    )
+    await after_important_action(message, db, user_id)
+
+
+@router.message(StateFilter(None), F.text == MENU_SETTINGS)
+async def settings(message: Message, db: Database) -> None:
+    await get_user_id(message, db)
+    await message.answer(
+        "<b>⚙️ Настройки</b>\n\n"
+        "Lonelyroom хранит только то, что вы сами оставляете здесь.",
+        reply_markup=main_menu(),
+    )
+
+
+@router.message(StateFilter(None), F.text == MENU_ARCHIVE)
+async def archive(message: Message, db: Database) -> None:
+    user_id = await get_user_id(message, db)
+    book_entries = await db.latest_book_entries(user_id, limit=5)
+    moments = await db.latest_moments(user_id, limit=5)
+    letters = await db.latest_letters(user_id, limit=5)
+    answers = await db.latest_daily_answers(user_id, limit=5)
+
+    letter_rows = []
+    for row in letters:
+        title = trim_text(str(row["title"]), 50)
+        body = trim_text(str(row["body"]), 95)
+        letter_rows.append({"text": f"{title}: {body}"})
+
+    text = (
+        "<b>🧳 Архив</b>\n\n"
+        "Последние следы, оставленные в комнате.\n\n"
+        f"{archive_block('📖 Страницы', book_entries)}\n\n"
+        f"{archive_block('🕯 Моменты', moments)}\n\n"
+        f"{archive_block('💌 Письма', letter_rows)}\n\n"
+        f"{daily_answers_block(answers)}"
     )
     await message.answer(text, reply_markup=main_menu())
 
